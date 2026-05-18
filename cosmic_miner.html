@@ -6,1220 +6,1078 @@
     <title>Cosmic Miner - 8-Bit Space Exploration</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             user-select: none;
         }
-
+        
         body {
             font-family: 'Press Start 2P', cursive;
-            background: #000005;
-            color: #00ff88;
+            background: #000000;
+            color: #00ff00;
             overflow: hidden;
             image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
-
-        #game-container {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-        }
-
-        /* Side Menu */
-        #side-menu {
-            width: 250px;
-            background: linear-gradient(180deg, #050510 0%, #000008 100%);
-            border-right: 4px solid #00ff88;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            overflow-y: auto;
-            z-index: 100;
-        }
-
-        .menu-section {
-            background: rgba(0, 255, 136, 0.08);
-            border: 2px solid #00ff88;
-            border-radius: 4px;
-            padding: 15px;
-        }
-
-        .menu-title {
-            font-size: 12px;
-            color: #ffcc00;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px #ff6600;
-        }
-
-        .resource-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 8px 0;
-            font-size: 10px;
-        }
-
-        .resource-value {
-            color: #00ffff;
-        }
-
-        button {
-            background: linear-gradient(180deg, #00aa66 0%, #006644 100%);
-            border: 3px solid #00ff88;
-            color: #fff;
-            padding: 12px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            margin: 5px 0;
-            width: 100%;
-        }
-
-        button:hover {
-            background: linear-gradient(180deg, #00cc77 0%, #008855 100%);
-            transform: scale(1.02);
-            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
-        }
-
-        button:disabled {
-            background: #333;
-            border-color: #666;
-            color: #888;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Main Game Area */
-        #main-area {
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-        }
-
-        #canvas-container {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-
-        canvas {
-            display: block;
-            image-rendering: pixelated;
-        }
-
-        /* UI Overlays */
-        .overlay {
-            position: absolute;
+        
+        #gameCanvas {
+            position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 50;
+            z-index: 1;
         }
-
-        .overlay.active {
-            display: flex;
-        }
-
-        .modal {
-            background: linear-gradient(180deg, #050510 0%, #000008 100%);
-            border: 4px solid #00ff88;
-            border-radius: 8px;
-            padding: 30px;
-            max-width: 800px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
-        }
-
-        .modal h2 {
-            color: #ffcc00;
-            margin-bottom: 20px;
-            font-size: 16px;
-            text-align: center;
-            text-shadow: 3px 3px #ff6600;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #ff4444;
-            border: 3px solid #ff6666;
-            width: 30px;
-            height: 30px;
-            font-size: 16px;
-            padding: 0;
-        }
-
-        /* Tech Tree */
-        .tech-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .tech-item {
-            background: rgba(0, 255, 136, 0.1);
-            border: 2px solid #00ff88;
-            border-radius: 4px;
-            padding: 15px;
-            text-align: center;
-            transition: all 0.3s;
-        }
-
-        .tech-item.researched {
-            background: rgba(0, 255, 136, 0.3);
-            border-color: #00ffff;
-        }
-
-        .tech-item.locked {
-            opacity: 0.5;
-            border-color: #666;
-        }
-
-        .tech-name {
-            font-size: 10px;
-            color: #ffcc00;
-            margin-bottom: 8px;
-        }
-
-        .tech-cost {
-            font-size: 8px;
-            color: #00ffff;
-            margin: 5px 0;
-        }
-
-        /* Vessel Panel */
-        .vessel-card {
-            background: rgba(0, 255, 136, 0.1);
-            border: 2px solid #00ff88;
-            border-radius: 4px;
-            padding: 15px;
-            margin: 10px 0;
-        }
-
-        .vessel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .vessel-status {
-            font-size: 8px;
-            padding: 4px 8px;
-            border-radius: 2px;
-        }
-
-        .status-mining {
-            background: #00aa66;
-            color: #fff;
-        }
-
-        .status-traveling {
-            background: #ffaa00;
-            color: #fff;
-        }
-
-        .status-idle {
-            background: #666;
-            color: #fff;
-        }
-
-        /* Progress Bar */
-        .progress-bar {
+        
+        #ui {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 20px;
-            background: #333;
-            border: 2px solid #00ff88;
-            border-radius: 2px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-
-        .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #00ff88, #00ffff);
-            transition: width 0.3s;
+            z-index: 10;
+            pointer-events: none;
         }
-
-        /* Notification */
-        #notification {
+        
+        #sideMenu {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 220px;
+            height: 100vh;
+            background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+            border-right: 4px solid #00ff00;
+            padding: 20px 15px;
+            pointer-events: auto;
+            overflow-y: auto;
+            image-rendering: pixelated;
+        }
+        
+        .menuTitle {
+            color: #00ff00;
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0px #003300;
+            letter-spacing: 1px;
+        }
+        
+        .resource {
+            background: #0a0a0a;
+            border: 3px solid #00ff00;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 10px;
+            image-rendering: pixelated;
+        }
+        
+        .resourceName {
+            color: #00ffff;
+            margin-bottom: 6px;
+        }
+        
+        .resourceValue {
+            color: #ffffff;
+            font-size: 12px;
+        }
+        
+        .btn {
+            background: #000000;
+            border: 3px solid #00ff00;
+            color: #00ff00;
+            padding: 12px 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: all 0.1s;
+            image-rendering: pixelated;
+            text-transform: uppercase;
+        }
+        
+        .btn:hover {
+            background: #00ff00;
+            color: #000000;
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0px #003300;
+        }
+        
+        .btn:active {
+            transform: translate(0px, 0px);
+            box-shadow: 0px 0px 0px #003300;
+        }
+        
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            border-top: 2px dashed #00ff00;
+            padding-top: 15px;
+        }
+        
+        #systemInfo {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: linear-gradient(180deg, #050510 0%, #000008 100%);
-            border: 3px solid #00ff88;
-            border-radius: 4px;
-            padding: 15px 20px;
-            font-size: 10px;
-            transform: translateX(400px);
-            transition: transform 0.3s;
-            z-index: 200;
-        }
-
-        #notification.show {
-            transform: translateX(0);
-        }
-
-        /* Star System Info */
-        #system-info {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.85);
-            border: 2px solid #00ff88;
-            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #00ff00;
             padding: 15px;
             font-size: 10px;
-        }
-
-        /* Goal Tracker */
-        #goal-tracker {
-            background: rgba(255, 204, 0, 0.08);
-            border: 2px solid #ffcc00;
-            border-radius: 4px;
-            padding: 15px;
-            margin-top: 10px;
-        }
-
-        #goal-progress {
-            color: #ffcc00;
-            font-size: 9px;
-            margin-top: 8px;
-        }
-
-        /* Pixel art styling */
-        .pixel-border {
+            pointer-events: auto;
+            max-width: 300px;
             image-rendering: pixelated;
-            shape-rendering: crispEdges;
         }
-
+        
+        #notifications {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .notification {
+            background: rgba(0, 0, 0, 0.95);
+            border: 3px solid #00ff00;
+            color: #00ff00;
+            padding: 12px;
+            margin-bottom: 10px;
+            font-size: 9px;
+            animation: slideIn 0.3s ease-out;
+            image-rendering: pixelated;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        #zoomIndicator {
+            position: fixed;
+            bottom: 20px;
+            left: 240px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #00ff00;
+            padding: 10px;
+            font-size: 9px;
+            image-rendering: pixelated;
+        }
+        
+        #musicControl {
+            position: fixed;
+            top: 20px;
+            left: 240px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #00ff00;
+            padding: 10px;
+            font-size: 9px;
+            pointer-events: auto;
+            image-rendering: pixelated;
+        }
+        
+        .pixel-border {
+            position: relative;
+        }
+        
+        .pixel-border::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border: 2px solid transparent;
+            border-top-color: #00ff00;
+            border-left-color: #00ff00;
+            clip-path: polygon(0 0, 20px 0, 20px 2px, 4px 2px, 4px 20px, 2px 20px, 2px 4px, 0 4px, 0 100%, 100% 100%, 100% calc(100% - 20px), calc(100% - 2px) calc(100% - 20px), calc(100% - 2px) calc(100% - 4px), calc(100% - 20px) calc(100% - 4px), calc(100% - 20px) 100%, 100% 100%);
+        }
+        
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 12px;
         }
-
+        
         ::-webkit-scrollbar-track {
-            background: #000005;
+            background: #000000;
+            border: 2px solid #003300;
         }
-
+        
         ::-webkit-scrollbar-thumb {
-            background: #00ff88;
-            border-radius: 4px;
+            background: #00ff00;
+            border: 2px solid #000000;
+        }
+        
+        .techItem {
+            background: #0a0a0a;
+            border: 2px solid #003300;
+            padding: 10px;
+            margin-bottom: 8px;
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.1s;
+            image-rendering: pixelated;
+        }
+        
+        .techItem.unlocked {
+            border-color: #00ff00;
+            background: #001100;
+        }
+        
+        .techItem.researching {
+            border-color: #ffff00;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .vesselSlot {
+            background: #0a0a0a;
+            border: 2px solid #003300;
+            padding: 8px;
+            margin-bottom: 6px;
+            font-size: 8px;
+            image-rendering: pixelated;
+        }
+        
+        .vesselSlot.active {
+            border-color: #00ffff;
+        }
+        
+        #miniMap {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #00ff00;
+            image-rendering: pixelated;
         }
     </style>
 </head>
 <body>
-    <div id="game-container">
-        <!-- Side Menu -->
-        <div id="side-menu">
-            <div class="menu-section">
-                <div class="menu-title">⚡ RESOURCES</div>
-                <div class="resource-item">
-                    <span>Minerals:</span>
-                    <span class="resource-value" id="minerals-display">50</span>
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="ui">
+        <div id="sideMenu">
+            <div class="menuTitle">✦ COSMIC MINER ✦</div>
+            
+            <div class="section">
+                <div class="resource">
+                    <div class="resourceName">MINERALS</div>
+                    <div class="resourceValue" id="mineralsDisplay">50</div>
                 </div>
-                <div class="resource-item">
-                    <span>Energy:</span>
-                    <span class="resource-value" id="energy-display">5</span>
+                <div class="resource">
+                    <div class="resourceName">ENERGY</div>
+                    <div class="resourceValue" id="energyDisplay">5</div>
                 </div>
-                <div class="resource-item">
-                    <span>Vessels:</span>
-                    <span class="resource-value" id="vessels-display">0</span>
-                </div>
-            </div>
-
-            <div class="menu-section">
-                <div class="menu-title">🎯 CURRENT GOAL</div>
-                <div id="goal-tracker">
-                    <div style="font-size: 9px; line-height: 1.6;">Establish a mining colony in Alpha Centauri system</div>
-                    <div id="goal-progress">Progress: 0 / 1,000,000 minerals</div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="goal-progress-bar" style="width: 0%"></div>
-                    </div>
+                <div class="resource">
+                    <div class="resourceName">FLEET SIZE</div>
+                    <div class="resourceValue" id="fleetDisplay">0</div>
                 </div>
             </div>
-
-            <div class="menu-section">
-                <div class="menu-title">⛏️ MINING OPERATIONS</div>
-                <button onclick="showPanel('harvest')">☀️ Harvest Sun</button>
-                <button onclick="showPanel('blackhole')">🕳️ Harvest Black Hole</button>
-                <button onclick="showPanel('galaxy')">🌌 Harvest Galaxy</button>
+            
+            <div class="section">
+                <button class="btn" onclick="harvest('sun')">☀ Harvest Sun</button>
+                <button class="btn" onclick="harvest('blackhole')">⬤ Harvest Black Hole</button>
+                <button class="btn" onclick="harvest('galaxy')">◈ Harvest Galaxy</button>
             </div>
-
-            <div class="menu-section">
-                <div class="menu-title">🚀 VESSELS</div>
-                <button onclick="launchMiningVessel()">Launch Mining Vessel (50M, 5E)</button>
-                <button onclick="launchInterstellarVessel()">Launch Interstellar Vessel (1M M, 500E)</button>
-                <button onclick="showPanel('vessels')">Manage Fleet</button>
+            
+            <div class="section">
+                <button class="btn" onclick="launchMiningVessel()">🚀 Launch Mining Vessel (50M, 5E)</button>
+                <button class="btn" onclick="launchInterstellarVessel()">🛸 Launch Interstellar (1M M, 500E)</button>
             </div>
-
-            <div class="menu-section">
-                <div class="menu-title">🔬 RESEARCH</div>
-                <button onclick="showPanel('techtree')">Tech Tree</button>
+            
+            <div class="section">
+                <div class="menuTitle">TECH TREE</div>
+                <div id="techTree"></div>
             </div>
-
-            <div class="menu-section">
-                <div class="menu-title">🌟 NAVIGATION</div>
-                <button onclick="travelToSystem('solar')">Sol System</button>
-                <button onclick="travelToSystem('alpha')">Alpha Centauri</button>
-                <button onclick="travelToSystem('proxima')">Proxima Centauri</button>
-                <button onclick="showPanel('map')">Star Map</button>
+            
+            <div class="section">
+                <div class="menuTitle">ACTIVE VESSELS</div>
+                <div id="vesselList"></div>
             </div>
-        </div>
-
-        <!-- Main Game Area -->
-        <div id="main-area">
-            <div id="canvas-container">
-                <canvas id="game-canvas"></canvas>
-            </div>
-
-            <div id="system-info">
-                <div style="color: #ffcc00; margin-bottom: 10px;">CURRENT SYSTEM</div>
-                <div id="current-system-name">Sol System</div>
-                <div id="current-system-desc" style="margin-top: 8px; color: #aaa; font-size: 8px;">Earth's home system</div>
-            </div>
-
-            <div id="notification"></div>
-        </div>
-    </div>
-
-    <!-- Panels -->
-    <div id="harvest-panel" class="overlay">
-        <div class="modal">
-            <button class="close-btn" onclick="closePanel('harvest')">×</button>
-            <h2>☀️ SOLAR HARVESTING</h2>
-            <div style="text-align: center; margin: 20px 0;">
-                <canvas id="sun-canvas" width="300" height="300"></canvas>
-            </div>
-            <button onclick="harvestSun()">Harvest Solar Energy (+2 Energy)</button>
-            <p style="font-size: 8px; margin-top: 10px; color: #aaa;">Collect energy from our star. Safe but limited yield.</p>
-        </div>
-    </div>
-
-    <div id="blackhole-panel" class="overlay">
-        <div class="modal">
-            <button class="close-btn" onclick="closePanel('blackhole')">×</button>
-            <h2>🕳️ BLACK HOLE HARVESTING</h2>
-            <div style="text-align: center; margin: 20px 0;">
-                <canvas id="blackhole-canvas" width="300" height="300"></canvas>
-            </div>
-            <button onclick="harvestBlackHole()" id="bh-btn" disabled>Requires: Sagittarius A* Access</button>
-            <p style="font-size: 8px; margin-top: 10px; color: #aaa;">Extreme energy yields but dangerous. Requires advanced technology.</p>
-        </div>
-    </div>
-
-    <div id="galaxy-panel" class="overlay">
-        <div class="modal">
-            <button class="close-btn" onclick="closePanel('galaxy')">×</button>
-            <h2>🌌 GALAXY HARVESTING</h2>
-            <div style="text-align: center; margin: 20px 0;">
-                <canvas id="galaxy-canvas" width="300" height="300"></canvas>
-            </div>
-            <button onclick="harvestGalaxy()" id="galaxy-btn" disabled>Requires: Galactic Harvester</button>
-            <p style="font-size: 8px; margin-top: 10px; color: #aaa;">Massive resource collection from nebulae and cosmic dust.</p>
-        </div>
-    </div>
-
-    <div id="techtree-panel" class="overlay">
-        <div class="modal">
-            <button class="close-btn" onclick="closePanel('techtree')">×</button>
-            <h2>🔬 TECHNOLOGY TREE</h2>
-            <div class="tech-grid" id="tech-grid"></div>
-        </div>
-    </div>
-
-    <div id="vessels-panel" class="overlay">
-        <div class="modal">
-            <button class="close-btn" onclick="closePanel('vessels')">×</button>
-            <h2>🚀 FLEET MANAGEMENT</h2>
-            <div id="vessel-list"></div>
-        </div>
-    </div>
-
-    <div id="map-panel" class="overlay">
-        <div class="modal">
-            <button class="close-btn" onclick="closePanel('map')">×</button>
-            <h2>🌟 STAR MAP</h2>
-            <canvas id="map-canvas" width="700" height="500"></canvas>
-            <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                <button onclick="travelToSystem('solar')">Sol System</button>
-                <button onclick="travelToSystem('alpha')">Alpha Centauri</button>
-                <button onclick="travelToSystem('proxima')">Proxima Centauri</button>
+            
+            <div class="section">
+                <button class="btn" onclick="travelTo('sol')">☀ Sol System</button>
+                <button class="btn" onclick="travelTo('alpha')">★ Alpha Centauri</button>
+                <button class="btn" onclick="travelTo('proxima')">● Proxima Centauri</button>
+                <button class="btn" onclick="travelTo('trappist')">◆ TRAPPIST-1</button>
+                <button class="btn" onclick="travelTo('kepler')">◇ Kepler-186</button>
             </div>
         </div>
+        
+        <div id="musicControl">
+            <button class="btn" onclick="toggleMusic()" id="musicBtn">🎵 Music: OFF</button>
+        </div>
+        
+        <div id="systemInfo">
+            <div class="menuTitle">CURRENT SYSTEM</div>
+            <div id="systemName">Sol System</div>
+            <div id="systemDesc" style="margin-top: 10px; color: #00ffff;">The home star system of humanity. Contains 8 planets.</div>
+            <div id="systemStats" style="margin-top: 10px;"></div>
+        </div>
+        
+        <canvas id="miniMap"></canvas>
+        
+        <div id="zoomIndicator">
+            ZOOM: <span id="zoomLevel">100%</span><br>
+            SCROLL to zoom<br>
+            DRAG to rotate
+        </div>
+        
+        <div id="notifications"></div>
     </div>
 
     <script>
         // Game State
-        const gameState = {
+        const state = {
             minerals: 50,
             energy: 5,
             vessels: [],
-            researchedTechs: [],
-            currentSystem: 'solar',
-            totalMinedForGoal: 0,
-            goalTarget: 1000000,
-            lastUpdate: Date.now()
+            techs: {},
+            currentSystem: 'sol',
+            zoom: 1,
+            rotation: { x: 0.3, y: 0 },
+            isDragging: false,
+            lastMouse: { x: 0, y: 0 },
+            musicPlaying: false,
+            audioContext: null,
+            oscillators: [],
+            lastHarvest: { sun: 0, blackhole: 0, galaxy: 0 },
+            discoveries: [],
+            events: []
         };
 
-        // Technology Tree
+        // Tech Tree
         const techTree = [
-            {
-                id: 'solar_harvester',
-                name: 'Solar Harvester',
-                description: 'Improved solar collection efficiency',
-                cost: { minerals: 100, energy: 20 },
-                prerequisite: null,
-                effect: 'Double solar harvest'
-            },
-            {
-                id: 'mining_drone',
-                name: 'Mining Drone',
-                description: 'Automated mining for vessels',
-                cost: { minerals: 200, energy: 30 },
-                prerequisite: null,
-                effect: '+50% mining speed'
-            },
-            {
-                id: 'warp_drive',
-                name: 'Warp Drive',
-                description: 'Faster interstellar travel',
-                cost: { minerals: 500, energy: 100 },
-                prerequisite: null,
-                effect: '-50% travel time'
-            },
-            {
-                id: 'blackhole_access',
-                name: 'Black Hole Access',
-                description: 'Safe black hole harvesting',
-                cost: { minerals: 1000, energy: 200 },
-                prerequisite: 'warp_drive',
-                effect: 'Unlock black hole harvesting'
-            },
-            {
-                id: 'quantum_miner',
-                name: 'Quantum Miner',
-                description: 'Advanced quantum mining technology',
-                cost: { minerals: 2000, energy: 400 },
-                prerequisite: 'mining_drone',
-                effect: '+100% mining speed'
-            },
-            {
-                id: 'galactic_harvester',
-                name: 'Galactic Harvester',
-                description: 'Harvest entire galaxies',
-                cost: { minerals: 5000, energy: 1000 },
-                prerequisite: 'blackhole_access',
-                effect: 'Unlock galaxy harvesting'
-            },
-            {
-                id: 'dyson_sphere',
-                name: 'Dyson Sphere',
-                description: 'Complete stellar energy capture',
-                cost: { minerals: 10000, energy: 2000 },
-                prerequisite: 'solar_harvester',
-                effect: '10x solar harvest'
-            },
-            {
-                id: 'wormhole_gate',
-                name: 'Wormhole Gate',
-                description: 'Instant system travel',
-                cost: { minerals: 50000, energy: 10000 },
-                prerequisite: 'warp_drive',
-                effect: 'Instant travel between systems'
-            }
+            { id: 'mining1', name: 'Efficient Mining', cost: { minerals: 100, energy: 10 }, effect: 'harvest +25%', unlocked: false },
+            { id: 'mining2', name: 'Advanced Harvesters', cost: { minerals: 500, energy: 50 }, effect: 'harvest +50%', unlocked: false },
+            { id: 'speed1', name: 'Faster Vessels', cost: { minerals: 200, energy: 20 }, effect: 'speed +30%', unlocked: false },
+            { id: 'speed2', name: 'Warp Drive', cost: { minerals: 1000, energy: 100 }, effect: 'speed +100%', unlocked: false },
+            { id: 'storage1', name: 'Expanded Cargo', cost: { minerals: 300, energy: 30 }, effect: 'cargo +50%', unlocked: false },
+            { id: 'storage2', name: 'Massive Holds', cost: { minerals: 1500, energy: 150 }, effect: 'cargo +150%', unlocked: false },
+            { id: 'scanner1', name: 'Deep Scanner', cost: { minerals: 400, energy: 40 }, effect: 'find rare minerals', unlocked: false },
+            { id: 'scanner2', name: 'Quantum Scanner', cost: { minerals: 2000, energy: 200 }, effect: 'find artifacts', unlocked: false }
         ];
 
         // Star Systems
-        const starSystems = {
-            solar: {
+        const systems = {
+            sol: {
                 name: 'Sol System',
-                description: 'Earth\'s home system with abundant resources - 8 planets orbiting a G-type star',
-                color: '#ffcc00',
-                planets: ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'],
-                x: 350,
-                y: 250,
+                description: 'The home star system of humanity. Contains 8 planets.',
                 type: 'single_star',
-                starColor: '#ffcc00'
+                starColor: '#ffff00',
+                bodies: [
+                    { name: 'Mercury', type: 'planet', distance: 80, size: 4, color: '#888888', speed: 0.04 },
+                    { name: 'Venus', type: 'planet', distance: 110, size: 7, color: '#ffcc66', speed: 0.03 },
+                    { name: 'Earth', type: 'planet', distance: 150, size: 7, color: '#0066ff', speed: 0.025 },
+                    { name: 'Mars', type: 'planet', distance: 190, size: 5, color: '#ff3300', speed: 0.02 },
+                    { name: 'Jupiter', type: 'planet', distance: 280, size: 18, color: '#cc9966', speed: 0.012 },
+                    { name: 'Saturn', type: 'planet', distance: 360, size: 15, color: '#ffcc99', speed: 0.009, rings: true },
+                    { name: 'Uranus', type: 'planet', distance: 440, size: 10, color: '#66ccff', speed: 0.006 },
+                    { name: 'Neptune', type: 'planet', distance: 520, size: 10, color: '#3366ff', speed: 0.004 }
+                ]
             },
             alpha: {
                 name: 'Alpha Centauri',
-                description: 'Nearest star system - Binary stars (A & B) with rich mineral deposits',
-                color: '#00ffff',
-                planets: ['Proxima b', 'Alpha Centauri Ab', 'Alpha Centauri Ac'],
-                x: 150,
-                y: 150,
+                description: 'Binary star system with potential habitable worlds.',
                 type: 'binary_star',
-                starColor: '#ffdd88'
+                starColor: '#ffcc00',
+                bodies: [
+                    { name: 'Alpha Cen A', type: 'star', distance: 0, size: 12, color: '#ffcc00', speed: 0 },
+                    { name: 'Alpha Cen B', type: 'star', distance: 40, size: 10, color: '#ff8800', speed: 0.02 },
+                    { name: 'Proxima b', type: 'planet', distance: 120, size: 6, color: '#66ff66', speed: 0.015 },
+                    { name: 'Alpha Ab', type: 'planet', distance: 180, size: 8, color: '#cc66ff', speed: 0.01 },
+                    { name: 'Alpha Ac', type: 'planet', distance: 240, size: 7, color: '#ff6699', speed: 0.008 }
+                ]
             },
             proxima: {
                 name: 'Proxima Centauri',
-                description: 'Red dwarf system with tidally locked habitable worlds',
-                color: '#ff6666',
-                planets: ['Proxima b', 'Proxima c', 'Proxima d'],
-                x: 550,
-                y: 350,
+                description: 'Red dwarf system with tidally locked worlds.',
                 type: 'red_dwarf',
-                starColor: '#ff4444'
+                starColor: '#ff3300',
+                bodies: [
+                    { name: 'Proxima', type: 'star', distance: 0, size: 8, color: '#ff3300', speed: 0 },
+                    { name: 'Proxima b', type: 'planet', distance: 90, size: 6, color: '#996633', speed: 0.02 },
+                    { name: 'Proxima c', type: 'planet', distance: 150, size: 9, color: '#6699ff', speed: 0.012 },
+                    { name: 'Proxima d', type: 'planet', distance: 200, size: 4, color: '#cccccc', speed: 0.008 }
+                ]
+            },
+            trappist: {
+                name: 'TRAPPIST-1',
+                description: 'Ultra-cool dwarf with seven Earth-sized planets.',
+                type: 'red_dwarf',
+                starColor: '#ff6600',
+                bodies: [
+                    { name: 'TRAPPIST-1', type: 'star', distance: 0, size: 7, color: '#ff6600', speed: 0 },
+                    { name: 'TRAPPIST-1b', type: 'planet', distance: 70, size: 5, color: '#ff9966', speed: 0.025 },
+                    { name: 'TRAPPIST-1c', type: 'planet', distance: 95, size: 5, color: '#ffcc99', speed: 0.02 },
+                    { name: 'TRAPPIST-1d', type: 'planet', distance: 120, size: 5, color: '#66ff99', speed: 0.018 },
+                    { name: 'TRAPPIST-1e', type: 'planet', distance: 145, size: 5, color: '#66ccff', speed: 0.015 },
+                    { name: 'TRAPPIST-1f', type: 'planet', distance: 170, size: 5, color: '#9966ff', speed: 0.012 },
+                    { name: 'TRAPPIST-1g', type: 'planet', distance: 195, size: 5, color: '#cc66ff', speed: 0.01 },
+                    { name: 'TRAPPIST-1h', type: 'planet', distance: 220, size: 5, color: '#ff66cc', speed: 0.008 }
+                ]
+            },
+            kepler: {
+                name: 'Kepler-186',
+                description: 'Red dwarf with five known planets, one in habitable zone.',
+                type: 'red_dwarf',
+                starColor: '#ff4400',
+                bodies: [
+                    { name: 'Kepler-186', type: 'star', distance: 0, size: 8, color: '#ff4400', speed: 0 },
+                    { name: 'Kepler-186b', type: 'planet', distance: 80, size: 5, color: '#ffaa66', speed: 0.022 },
+                    { name: 'Kepler-186c', type: 'planet', distance: 110, size: 5, color: '#ffcc66', speed: 0.018 },
+                    { name: 'Kepler-186d', type: 'planet', distance: 140, size: 5, color: '#ff9966', speed: 0.014 },
+                    { name: 'Kepler-186e', type: 'planet', distance: 170, size: 5, color: '#ff8866', speed: 0.01 },
+                    { name: 'Kepler-186f', type: 'planet', distance: 200, size: 6, color: '#66ff66', speed: 0.008 }
+                ]
             }
         };
 
         // Canvas setup
-        const canvas = document.getElementById('game-canvas');
+        const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let animationId;
+        const miniMapCanvas = document.getElementById('miniMap');
+        const miniMapCtx = miniMapCanvas.getContext('2d');
 
-        function resizeCanvas() {
-            canvas.width = document.getElementById('canvas-container').clientWidth;
-            canvas.height = document.getElementById('canvas-container').clientHeight;
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            miniMapCanvas.width = 200;
+            miniMapCanvas.height = 200;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // Audio synthesis for cosmic music
+        function initAudio() {
+            if (!state.audioContext) {
+                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
         }
 
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        // 3D Solar System Rendering (8-bit style)
-        let cameraAngle = 0;
-        let cameraZoom = 1;
-        let isDragging = false;
-        let lastMouseX = 0;
-
-        canvas.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            lastMouseX = e.clientX;
-        });
-
-        canvas.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                cameraAngle += (e.clientX - lastMouseX) * 0.01;
-                lastMouseX = e.clientX;
-            }
-        });
-
-        canvas.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
-
-        canvas.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            cameraZoom += e.deltaY * -0.001;
-            cameraZoom = Math.max(0.5, Math.min(3, cameraZoom));
-        });
-
-        // Planet data
-        const planets = [
-            { name: 'Sun', radius: 40, distance: 0, color: '#ffcc00', speed: 0 },
-            { name: 'Mercury', radius: 4, distance: 60, color: '#aaaaaa', speed: 0.04 },
-            { name: 'Venus', radius: 7, distance: 90, color: '#ffaa00', speed: 0.015 },
-            { name: 'Earth', radius: 8, distance: 130, color: '#0066ff', speed: 0.01 },
-            { name: 'Mars', radius: 5, distance: 170, color: '#ff4444', speed: 0.008 },
-            { name: 'Jupiter', radius: 20, distance: 240, color: '#ff8844', speed: 0.002 },
-            { name: 'Saturn', radius: 17, distance: 310, color: '#ffcc88', speed: 0.0009, ring: true },
-            { name: 'Uranus', radius: 12, distance: 370, color: '#66ccff', speed: 0.0004 },
-            { name: 'Neptune', radius: 11, distance: 420, color: '#4466ff', speed: 0.0001 }
-        ];
-
-        let planetAngles = planets.map(() => Math.random() * Math.PI * 2);
-
-        function drawPixelatedCircle(x, y, radius, color, glow = false) {
-            const pixelSize = 2;
-            ctx.fillStyle = color;
+        function playCosmicTone(freq, duration, type = 'sine') {
+            if (!state.audioContext || !state.musicPlaying) return;
             
-            if (glow) {
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = color;
-            }
+            const oscillator = state.audioContext.createOscillator();
+            const gainNode = state.audioContext.createGain();
             
-            for (let angle = 0; angle < Math.PI * 2; angle += 0.1) {
-                for (let r = 0; r < radius; r += pixelSize) {
-                    const px = x + Math.cos(angle) * r;
-                    const py = y + Math.sin(angle) * r;
-                    ctx.fillRect(px, py, pixelSize, pixelSize);
-                }
-            }
+            oscillator.connect(gainNode);
+            gainNode.connect(state.audioContext.destination);
             
-            ctx.shadowBlur = 0;
+            oscillator.frequency.value = freq;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.1, state.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, state.audioContext.currentTime + duration);
+            
+            oscillator.start(state.audioContext.currentTime);
+            oscillator.stop(state.audioContext.currentTime + duration);
+            
+            state.oscillators.push(oscillator);
+            setTimeout(() => {
+                const index = state.oscillators.indexOf(oscillator);
+                if (index > -1) state.oscillators.splice(index, 1);
+            }, duration * 1000);
         }
 
-        function renderSolarSystem() {
-            ctx.fillStyle = '#000005';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Draw stars
-            ctx.fillStyle = '#ffffff';
-            for (let i = 0; i < 200; i++) {
-                const x = (Math.sin(i * 123.456) * canvas.width + canvas.width) % canvas.width;
-                const y = (Math.cos(i * 789.012) * canvas.height + canvas.height) % canvas.height;
-                const size = (Math.sin(i * 456.789) + 2) * 2;
-                ctx.fillRect(x, y, size, size);
-            }
-
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const scale = cameraZoom;
-
-            // Get current system data
-            const currentSystemData = starSystems[gameState.currentSystem];
+        function generateCosmicMusic() {
+            if (!state.musicPlaying) return;
             
-            // Draw different celestial objects based on current system
-            if (gameState.currentSystem === 'solar') {
-                // Sol System - normal planets
-                planets.forEach((planet, index) => {
-                    if (planet.distance === 0) {
-                        // Sun
-                        drawPixelatedCircle(centerX, centerY, planet.radius * scale, planet.color, true);
-                    } else {
-                        planetAngles[index] += planet.speed;
-                        
-                        const x = centerX + Math.cos(planetAngles[index] + cameraAngle) * planet.distance * scale;
-                        const y = centerY + Math.sin(planetAngles[index] + cameraAngle) * planet.distance * scale * 0.3;
-                        
-                        // Draw orbit
-                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.ellipse(centerX, centerY, planet.distance * scale, planet.distance * scale * 0.3, 0, 0, Math.PI * 2);
-                        ctx.stroke();
+            const scales = [
+                [196, 220, 246.94, 261.63, 293.66, 329.63], // G minor
+                [164.81, 196, 220, 246.94, 293.66, 329.63], // E minor
+                [146.83, 174.61, 196, 220, 261.63, 293.66]  // D minor
+            ];
+            
+            const scale = scales[Math.floor(Math.random() * scales.length)];
+            const note = scale[Math.floor(Math.random() * scale.length)];
+            const duration = 2 + Math.random() * 3;
+            const type = ['sine', 'triangle'][Math.floor(Math.random() * 2)];
+            
+            playCosmicTone(note, duration, type);
+            
+            // Add harmonic
+            setTimeout(() => {
+                playCosmicTone(note * 1.5, duration * 0.7, 'sine');
+            }, 500);
+            
+            // Schedule next note
+            setTimeout(generateCosmicMusic, duration * 1000 * (0.5 + Math.random() * 0.5));
+        }
 
-                        // Draw planet
-                        drawPixelatedCircle(x, y, planet.radius * scale, planet.color);
-
-                        // Saturn's ring
-                        if (planet.ring) {
-                            ctx.strokeStyle = '#ccaa88';
-                            ctx.lineWidth = 2;
-                            ctx.beginPath();
-                            ctx.ellipse(x, y, planet.radius * scale * 2, planet.radius * scale * 0.5, 0.2, 0, Math.PI * 2);
-                            ctx.stroke();
-                        }
-
-                        // Planet label
-                        ctx.fillStyle = '#ffffff';
-                        ctx.font = '8px "Press Start 2P"';
-                        ctx.fillText(planet.name, x - 20, y + planet.radius * scale + 15);
-                    }
+        function toggleMusic() {
+            initAudio();
+            state.musicPlaying = !state.musicPlaying;
+            document.getElementById('musicBtn').textContent = state.musicPlaying ? '🎵 Music: ON' : '🎵 Music: OFF';
+            
+            if (state.musicPlaying) {
+                generateCosmicMusic();
+                showNotification('🎵 Cosmic ambient music started', 'info');
+            } else {
+                state.oscillators.forEach(osc => {
+                    try { osc.stop(); } catch(e) {}
                 });
-            } else if (gameState.currentSystem === 'alpha') {
-                // Alpha Centauri System - Binary stars with planets
-                const binaryAngle = Date.now() * 0.0005;
-                const binaryDistance = 80 * scale;
-                
-                // Alpha Centauri A (yellow star)
-                const ax = centerX + Math.cos(binaryAngle) * binaryDistance;
-                const ay = centerY + Math.sin(binaryAngle) * binaryDistance * 0.3;
-                drawPixelatedCircle(ax, ay, 35 * scale, '#ffdd88', true);
-                
-                // Alpha Centauri B (orange star)
-                const bx = centerX - Math.cos(binaryAngle) * binaryDistance;
-                const by = centerY - Math.sin(binaryAngle) * binaryDistance * 0.3;
-                drawPixelatedCircle(bx, by, 28 * scale, '#ffaa66', true);
-                
-                // Proxima b (habitable planet around both stars)
-                planetAngles[0] += 0.005;
-                const px = centerX + Math.cos(planetAngles[0]) * 150 * scale;
-                const py = centerY + Math.sin(planetAngles[0]) * 150 * scale * 0.3;
-                drawPixelatedCircle(px, py, 10 * scale, '#66ff88', false);
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '8px "Press Start 2P"';
-                ctx.fillText('Proxima b', px - 25, py + 20);
-                
-                // Alpha Centauri Ab
-                planetAngles[1] += 0.003;
-                const abx = centerX + Math.cos(planetAngles[1]) * 200 * scale;
-                const aby = centerY + Math.sin(planetAngles[1]) * 200 * scale * 0.3;
-                drawPixelatedCircle(abx, aby, 12 * scale, '#88ccff', false);
-                ctx.fillText('Alpha Centauri Ab', abx - 40, aby + 20);
-                
-                // Alpha Centauri Ac
-                planetAngles[2] += 0.002;
-                const acx = centerX + Math.cos(planetAngles[2]) * 250 * scale;
-                const acy = centerY + Math.sin(planetAngles[2]) * 250 * scale * 0.3;
-                drawPixelatedCircle(acx, acy, 8 * scale, '#ff88aa', false);
-                ctx.fillText('Alpha Centauri Ac', acx - 35, acy + 20);
-                
-            } else if (gameState.currentSystem === 'proxima') {
-                // Proxima Centauri System - Red dwarf with planets
-                // Proxima Centauri (red dwarf star)
-                drawPixelatedCircle(centerX, centerY, 25 * scale, '#ff4444', true);
-                
-                // Proxima b (tidally locked habitable world)
-                planetAngles[0] += 0.008;
-                const pbx = centerX + Math.cos(planetAngles[0]) * 100 * scale;
-                const pby = centerY + Math.sin(planetAngles[0]) * 100 * scale * 0.3;
-                drawPixelatedCircle(pbx, pby, 9 * scale, '#aa6644', false);
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '8px "Press Start 2P"';
-                ctx.fillText('Proxima b', pbx - 25, pby + 20);
-                
-                // Proxima c (ice giant)
-                planetAngles[1] += 0.004;
-                const pcx = centerX + Math.cos(planetAngles[1]) * 180 * scale;
-                const pcy = centerY + Math.sin(planetAngles[1]) * 180 * scale * 0.3;
-                drawPixelatedCircle(pcx, pcy, 14 * scale, '#88aaff', false);
-                ctx.fillText('Proxima c', pcx - 30, pcy + 20);
-                
-                // Proxima d (small rocky)
-                planetAngles[2] += 0.012;
-                const pdx = centerX + Math.cos(planetAngles[2]) * 60 * scale;
-                const pdy = centerY + Math.sin(planetAngles[2]) * 60 * scale * 0.3;
-                drawPixelatedCircle(pdx, pdy, 5 * scale, '#aaaaaa', false);
-                ctx.fillText('Proxima d', pdx - 25, pdy + 20);
+                state.oscillators = [];
             }
-
-            // Draw UI hint
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-            ctx.font = '8px "Press Start 2P"';
-            ctx.fillText('Drag to rotate • Scroll to zoom', 10, canvas.height - 10);
-
-            animationId = requestAnimationFrame(renderSolarSystem);
         }
 
-        // Mini canvases for panels
-        function drawSunAnimation() {
-            const sunCanvas = document.getElementById('sun-canvas');
-            const sunCtx = sunCanvas.getContext('2d');
-            let frame = 0;
-
-            function animate() {
-                sunCtx.fillStyle = '#000005';
-                sunCtx.fillRect(0, 0, 300, 300);
-
-                const centerX = 150;
-                const centerY = 150;
-                const pulse = Math.sin(frame * 0.1) * 5;
-
-                // Sun glow
-                const gradient = sunCtx.createRadialGradient(centerX, centerY, 30, centerX, centerY, 100);
-                gradient.addColorStop(0, '#ffcc00');
-                gradient.addColorStop(0.5, '#ff8800');
-                gradient.addColorStop(1, 'transparent');
-                sunCtx.fillStyle = gradient;
-                sunCtx.fillRect(0, 0, 300, 300);
-
-                // Sun core
-                drawPixelatedCircleOnCtx(sunCtx, centerX, centerY, 40 + pulse, '#ffcc00', true);
-
-                frame++;
-                requestAnimationFrame(animate);
-            }
-            animate();
-        }
-
-        function drawBlackHoleAnimation() {
-            const bhCanvas = document.getElementById('blackhole-canvas');
-            const bhCtx = bhCanvas.getContext('2d');
-            let frame = 0;
-
-            function animate() {
-                bhCtx.fillStyle = '#000000';
-                bhCtx.fillRect(0, 0, 300, 300);
-
-                const centerX = 150;
-                const centerY = 150;
-
-                // Accretion disk
-                for (let i = 0; i < 5; i++) {
-                    const angle = frame * 0.05 + i * 1.2;
-                    const radius = 30 + i * 15;
-                    const x = centerX + Math.cos(angle) * radius;
-                    const y = centerY + Math.sin(angle) * radius * 0.3;
-                    
-                    const gradient = bhCtx.createRadialGradient(x, y, 0, x, y, 20);
-                    gradient.addColorStop(0, '#ff66ff');
-                    gradient.addColorStop(1, 'transparent');
-                    bhCtx.fillStyle = gradient;
-                    bhCtx.fillRect(x - 20, y - 20, 40, 40);
-                }
-
-                // Black hole
-                drawPixelatedCircleOnCtx(bhCtx, centerX, centerY, 25, '#000000', false);
-                
-                // Event horizon glow
-                bhCtx.strokeStyle = '#ff00ff';
-                bhCtx.lineWidth = 2;
-                bhCtx.beginPath();
-                bhCtx.arc(centerX, centerY, 25, 0, Math.PI * 2);
-                bhCtx.stroke();
-
-                frame++;
-                requestAnimationFrame(animate);
-            }
-            animate();
-        }
-
-        function drawGalaxyAnimation() {
-            const galCanvas = document.getElementById('galaxy-canvas');
-            const galCtx = galCanvas.getContext('2d');
-            let frame = 0;
-
-            function animate() {
-                galCtx.fillStyle = '#000005';
-                galCtx.fillRect(0, 0, 300, 300);
-
-                const centerX = 150;
-                const centerY = 150;
-
-                // Spiral arms
-                for (let arm = 0; arm < 3; arm++) {
-                    for (let i = 0; i < 100; i++) {
-                        const angle = (frame * 0.02) + (arm * 2.09) + i * 0.1;
-                        const radius = i * 1.5;
-                        const x = centerX + Math.cos(angle) * radius;
-                        const y = centerY + Math.sin(angle) * radius * 0.5;
-                        
-                        const brightness = Math.sin(i * 0.1 + frame * 0.05) * 0.5 + 0.5;
-                        galCtx.fillStyle = `rgba(${100 + brightness * 155}, ${150 + brightness * 105}, 255, ${brightness})`;
-                        galCtx.fillRect(x, y, 3, 3);
-                    }
-                }
-
-                // Core
-                drawPixelatedCircleOnCtx(galCtx, centerX, centerY, 30, '#ffcc00', true);
-
-                frame++;
-                requestAnimationFrame(animate);
-            }
-            animate();
-        }
-
-        function drawPixelatedCircleOnCtx(context, x, y, radius, color, glow) {
-            const pixelSize = 3;
-            context.fillStyle = color;
-            
-            if (glow) {
-                context.shadowBlur = 15;
-                context.shadowColor = color;
-            }
-            
-            for (let angle = 0; angle < Math.PI * 2; angle += 0.15) {
-                for (let r = 0; r < radius; r += pixelSize) {
-                    const px = x + Math.cos(angle) * r;
-                    const py = y + Math.sin(angle) * r;
-                    context.fillRect(px, py, pixelSize, pixelSize);
-                }
-            }
-            
-            context.shadowBlur = 0;
-        }
-
-        function drawMap() {
-            const mapCanvas = document.getElementById('map-canvas');
-            const mapCtx = mapCanvas.getContext('2d');
-
-            mapCtx.fillStyle = '#000005';
-            mapCtx.fillRect(0, 0, 700, 500);
-
-            // Draw stars
-            mapCtx.fillStyle = '#ffffff';
-            for (let i = 0; i < 300; i++) {
-                const x = Math.random() * 700;
-                const y = Math.random() * 500;
-                mapCtx.fillRect(x, y, 2, 2);
-            }
-
-            // Draw systems
-            Object.values(starSystems).forEach(system => {
-                // Connection lines
-                Object.values(starSystems).forEach(other => {
-                    if (other !== system) {
-                        mapCtx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
-                        mapCtx.lineWidth = 1;
-                        mapCtx.setLineDash([5, 5]);
-                        mapCtx.beginPath();
-                        mapCtx.moveTo(system.x, system.y);
-                        mapCtx.lineTo(other.x, other.y);
-                        mapCtx.stroke();
-                        mapCtx.setLineDash([]);
-                    }
-                });
-
-                // System circle
-                const gradient = mapCtx.createRadialGradient(system.x, system.y, 0, system.x, system.y, 30);
-                gradient.addColorStop(0, system.color);
-                gradient.addColorStop(1, 'transparent');
-                mapCtx.fillStyle = gradient;
-                mapCtx.fillRect(system.x - 30, system.y - 30, 60, 60);
-
-                // System core
-                drawPixelatedCircleOnCtx(mapCtx, system.x, system.y, 15, system.color, true);
-
-                // Label
-                mapCtx.fillStyle = '#ffffff';
-                mapCtx.font = '10px "Press Start 2P"';
-                mapCtx.fillText(system.name, system.x - 60, system.y + 50);
-            });
-
-            // Current system marker
-            const current = starSystems[gameState.currentSystem];
-            mapCtx.strokeStyle = '#00ff00';
-            mapCtx.lineWidth = 3;
-            mapCtx.setLineDash([]);
-            mapCtx.beginPath();
-            mapCtx.arc(current.x, current.y, 25, 0, Math.PI * 2);
-            mapCtx.stroke();
-        }
-
-        // Game Functions
+        // Game functions
         function updateUI() {
-            document.getElementById('minerals-display').textContent = gameState.minerals.toLocaleString();
-            document.getElementById('energy-display').textContent = gameState.energy.toLocaleString();
-            document.getElementById('vessels-display').textContent = gameState.vessels.length;
+            document.getElementById('mineralsDisplay').textContent = Math.floor(state.minerals).toLocaleString();
+            document.getElementById('energyDisplay').textContent = Math.floor(state.energy).toLocaleString();
+            document.getElementById('fleetDisplay').textContent = state.vessels.length;
+            document.getElementById('zoomLevel').textContent = Math.round(state.zoom * 100) + '%';
             
-            const progress = (gameState.totalMinedForGoal / gameState.goalTarget) * 100;
-            document.getElementById('goal-progress').textContent = 
-                `Progress: ${gameState.totalMinedForGoal.toLocaleString()} / ${gameState.goalTarget.toLocaleString()} minerals`;
-            document.getElementById('goal-progress-bar').style.width = `${Math.min(progress, 100)}%`;
+            const system = systems[state.currentSystem];
+            document.getElementById('systemName').textContent = system.name;
+            document.getElementById('systemDesc').textContent = system.description;
+            document.getElementById('systemStats').innerHTML = `
+                <div style="color: #00ffff;">Stars: ${system.bodies.filter(b => b.type === 'star').length}</div>
+                <div style="color: #00ffff;">Planets: ${system.bodies.filter(b => b.type === 'planet').length}</div>
+                <div style="color: #00ffff;">Vessels: ${state.vessels.filter(v => v.system === state.currentSystem).length}</div>
+            `;
             
-            document.getElementById('current-system-name').textContent = starSystems[gameState.currentSystem].name;
-            document.getElementById('current-system-desc').textContent = starSystems[gameState.currentSystem].description;
+            updateTechTree();
+            updateVesselList();
         }
 
-        function showNotification(message) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.classList.add('show');
-            setTimeout(() => notification.classList.remove('show'), 3000);
+        function updateTechTree() {
+            const container = document.getElementById('techTree');
+            container.innerHTML = '';
+            
+            techTree.forEach(tech => {
+                const div = document.createElement('div');
+                div.className = 'techItem' + (tech.unlocked ? ' unlocked' : '');
+                div.innerHTML = `
+                    <div style="color: ${tech.unlocked ? '#00ff00' : '#00ffff'}">${tech.name}</div>
+                    <div style="color: #888; margin-top: 4px;">${tech.effect}</div>
+                    <div style="color: #ffff00; margin-top: 4px;">${tech.cost.minerals}M ${tech.cost.energy}E</div>
+                `;
+                div.onclick = () => researchTech(tech);
+                container.appendChild(div);
+            });
         }
 
-        function showPanel(panelName) {
-            document.getElementById(`${panelName}-panel`).classList.add('active');
+        function updateVesselList() {
+            const container = document.getElementById('vesselList');
+            container.innerHTML = '';
             
-            if (panelName === 'techtree') {
-                renderTechTree();
-            } else if (panelName === 'vessels') {
-                renderVesselList();
-            } else if (panelName === 'map') {
-                drawMap();
+            const systemVessels = state.vessels.filter(v => v.system === state.currentSystem);
+            systemVessels.slice(0, 10).forEach((vessel, index) => {
+                const div = document.createElement('div');
+                div.className = 'vesselSlot';
+                div.innerHTML = `
+                    <div style="color: #00ffff;">${vessel.type === 'mining' ? '⛏️' : '🛸'} ${vessel.type.toUpperCase()}</div>
+                    <div style="color: #888;">${vessel.location}</div>
+                    <div style="color: #00ff00;">+${vessel.rate}/s</div>
+                `;
+                container.appendChild(div);
+            });
+            
+            if (systemVessels.length > 10) {
+                const div = document.createElement('div');
+                div.className = 'vesselSlot';
+                div.style.color = '#888';
+                div.textContent = `+${systemVessels.length - 10} more...`;
+                container.appendChild(div);
             }
         }
 
-        function closePanel(panelName) {
-            document.getElementById(`${panelName}-panel`).classList.remove('active');
-        }
-
-        function harvestSun() {
-            const multiplier = gameState.researchedTechs.includes('dyson_sphere') ? 10 :
-                              gameState.researchedTechs.includes('solar_harvester') ? 2 : 1;
-            gameState.energy += 2 * multiplier;
-            showNotification(`Harvested ${2 * multiplier} energy from the Sun!`);
+        function harvest(source) {
+            const now = Date.now();
+            const cooldown = 1000;
+            
+            if (now - state.lastHarvest[source] < cooldown) {
+                showNotification('⏳ Harvesting on cooldown!', 'warning');
+                return;
+            }
+            
+            state.lastHarvest[source] = now;
+            
+            let multiplier = 1;
+            if (state.techs['mining1']) multiplier *= 1.25;
+            if (state.techs['mining2']) multiplier *= 1.5;
+            
+            let minerals, energy, message;
+            
+            switch(source) {
+                case 'sun':
+                    minerals = 15 * multiplier;
+                    energy = 3 * multiplier;
+                    message = '☀ Harvested solar plasma!';
+                    playCosmicTone(440, 0.3, 'sine');
+                    break;
+                case 'blackhole':
+                    minerals = 50 * multiplier;
+                    energy = -2;
+                    message = '⬤ Extracted Hawking radiation!';
+                    playCosmicTone(220, 0.5, 'triangle');
+                    break;
+                case 'galaxy':
+                    minerals = 100 * multiplier;
+                    energy = 10 * multiplier;
+                    message = '◈ Collected cosmic dust!';
+                    playCosmicTone(330, 0.4, 'sine');
+                    break;
+            }
+            
+            state.minerals += minerals;
+            state.energy = Math.max(0, state.energy + energy);
+            
+            showNotification(`${message} +${Math.floor(minerals)}M ${energy >= 0 ? '+' + Math.floor(energy) : Math.floor(energy)}E`, 'success');
             updateUI();
-        }
-
-        function harvestBlackHole() {
-            if (!gameState.researchedTechs.includes('blackhole_access')) return;
-            gameState.energy += 50;
-            showNotification('Harvested 50 energy from black hole!');
-            updateUI();
-        }
-
-        function harvestGalaxy() {
-            if (!gameState.researchedTechs.includes('galactic_harvester')) return;
-            gameState.minerals += 500;
-            gameState.energy += 100;
-            gameState.totalMinedForGoal += 500;
-            showNotification('Harvested 500 minerals and 100 energy from galaxy!');
-            updateUI();
+            
+            // Random event chance
+            if (Math.random() < 0.05) {
+                triggerRandomEvent();
+            }
         }
 
         function launchMiningVessel() {
-            if (gameState.minerals < 50 || gameState.energy < 5) {
-                showNotification('Not enough resources! Need 50 minerals and 5 energy.');
+            const cost = { minerals: 50, energy: 5 };
+            
+            if (state.minerals < cost.minerals || state.energy < cost.energy) {
+                showNotification('❌ Not enough resources!', 'error');
                 return;
             }
-
-            gameState.minerals -= 50;
-            gameState.energy -= 5;
-
+            
+            state.minerals -= cost.minerals;
+            state.energy -= cost.energy;
+            
             const vessel = {
                 id: Date.now(),
                 type: 'mining',
-                destination: null,
-                status: 'idle',
-                miningProgress: 0,
-                travelProgress: 0,
-                resources: 0
+                system: state.currentSystem,
+                location: systems[state.currentSystem].bodies[Math.floor(Math.random() * systems[state.currentSystem].bodies.length)].name,
+                rate: 2,
+                launched: Date.now()
             };
-
-            gameState.vessels.push(vessel);
-            showNotification('Mining vessel launched!');
+            
+            if (state.techs['speed1']) vessel.rate *= 1.3;
+            if (state.techs['speed2']) vessel.rate *= 2;
+            
+            state.vessels.push(vessel);
+            
+            showNotification(`🚀 Mining vessel launched to ${vessel.location}!`, 'success');
+            playCosmicTone(523.25, 0.2, 'square');
             updateUI();
         }
 
         function launchInterstellarVessel() {
-            if (gameState.minerals < 1000000 || gameState.energy < 500) {
-                showNotification('Not enough resources! Need 1M minerals and 500 energy.');
+            const cost = { minerals: 1000000, energy: 500 };
+            
+            if (state.minerals < cost.minerals || state.energy < cost.energy) {
+                showNotification('❌ Need 1M minerals and 500 energy!', 'error');
                 return;
             }
-
-            gameState.minerals -= 1000000;
-            gameState.energy -= 500;
-
+            
+            state.minerals -= cost.minerals;
+            state.energy -= cost.energy;
+            
+            const destinations = ['alpha', 'proxima', 'trappist', 'kepler'];
+            const destination = destinations[Math.floor(Math.random() * destinations.length)];
+            
             const vessel = {
                 id: Date.now(),
                 type: 'interstellar',
-                destination: 'alpha',
-                status: 'traveling',
-                miningProgress: 0,
-                travelProgress: 0,
-                resources: 0
+                system: 'transit',
+                destination: destination,
+                progress: 0,
+                rate: 10,
+                launched: Date.now()
             };
-
-            gameState.vessels.push(vessel);
-            gameState.totalMinedForGoal += 1000000;
-            showNotification('Interstellar vessel launched to Alpha Centauri!');
+            
+            state.vessels.push(vessel);
+            
+            showNotification(`🛸 Interstellar vessel en route to ${systems[destination].name}!`, 'success');
+            playCosmicTone(659.25, 0.3, 'sine');
+            playCosmicTone(783.99, 0.3, 'sine');
             updateUI();
         }
 
-        function renderTechTree() {
-            const grid = document.getElementById('tech-grid');
-            grid.innerHTML = '';
-
-            techTree.forEach(tech => {
-                const isResearched = gameState.researchedTechs.includes(tech.id);
-                const isLocked = tech.prerequisite && !gameState.researchedTechs.includes(tech.prerequisite);
-                
-                const div = document.createElement('div');
-                div.className = `tech-item ${isResearched ? 'researched' : ''} ${isLocked ? 'locked' : ''}`;
-                div.innerHTML = `
-                    <div class="tech-name">${tech.name}</div>
-                    <div style="font-size: 8px; color: #aaa; margin: 5px 0;">${tech.description}</div>
-                    <div class="tech-cost">${isResearched ? '✓ Researched' : `${tech.cost.minerals}M / ${tech.cost.energy}E`}</div>
-                    <div style="font-size: 7px; color: #00ffff; margin: 5px 0;">${tech.effect}</div>
-                    ${!isResearched && !isLocked ? `<button onclick="researchTech('${tech.id}')">Research</button>` : ''}
-                `;
-                grid.appendChild(div);
-            });
-        }
-
-        function researchTech(techId) {
-            const tech = techTree.find(t => t.id === techId);
-            if (!tech) return;
-
-            if (gameState.minerals >= tech.cost.minerals && gameState.energy >= tech.cost.energy) {
-                gameState.minerals -= tech.cost.minerals;
-                gameState.energy -= tech.cost.energy;
-                gameState.researchedTechs.push(techId);
-                showNotification(`Researched ${tech.name}!`);
-                updateUI();
-                renderTechTree();
-            } else {
-                showNotification('Not enough resources!');
-            }
-        }
-
-        function renderVesselList() {
-            const list = document.getElementById('vessel-list');
-            list.innerHTML = '';
-
-            if (gameState.vessels.length === 0) {
-                list.innerHTML = '<p style="text-align: center; color: #aaa;">No vessels in fleet</p>';
+        function researchTech(tech) {
+            if (tech.unlocked) {
+                showNotification('✅ Technology already researched!', 'info');
                 return;
             }
-
-            gameState.vessels.forEach(vessel => {
-                const div = document.createElement('div');
-                div.className = 'vessel-card';
-                div.innerHTML = `
-                    <div class="vessel-header">
-                        <span style="color: #ffcc00;">${vessel.type === 'mining' ? '⛏️ Mining' : '🚀 Interstellar'} Vessel</span>
-                        <span class="vessel-status status-${vessel.status}">${vessel.status.toUpperCase()}</span>
-                    </div>
-                    <div style="font-size: 8px; color: #aaa;">Destination: ${vessel.destination || 'None'}</div>
-                    <div style="font-size: 8px; color: #aaa;">Resources: ${vessel.resources}</div>
-                    ${vessel.status === 'mining' ? `
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${vessel.miningProgress}%"></div>
-                        </div>
-                    ` : ''}
-                `;
-                list.appendChild(div);
-            });
-        }
-
-        function travelToSystem(systemId) {
-            if (systemId === gameState.currentSystem) {
-                showNotification('Already in this system!');
+            
+            if (state.minerals < tech.cost.minerals || state.energy < tech.cost.energy) {
+                showNotification('❌ Not enough resources!', 'error');
                 return;
             }
+            
+            state.minerals -= tech.cost.minerals;
+            state.energy -= tech.cost.energy;
+            tech.unlocked = true;
+            state.techs[tech.id] = true;
+            
+            showNotification(`🔬 Researched ${tech.name}!`, 'success');
+            playCosmicTone(523.25, 0.1, 'sine');
+            setTimeout(() => playCosmicTone(659.25, 0.1, 'sine'), 100);
+            setTimeout(() => playCosmicTone(783.99, 0.2, 'sine'), 200);
+            updateUI();
+        }
 
-            const travelTime = gameState.researchedTechs.includes('wormhole_gate') ? 0 :
-                              gameState.researchedTechs.includes('warp_drive') ? 1000 : 3000;
+        function travelTo(systemKey) {
+            if (systemKey === state.currentSystem) {
+                showNotification('📍 Already in this system!', 'info');
+                return;
+            }
+            
+            state.currentSystem = systemKey;
+            showNotification(`🌌 Travelled to ${systems[systemKey].name}!`, 'info');
+            playCosmicTone(440, 0.2, 'sine');
+            setTimeout(() => playCosmicTone(554.37, 0.2, 'sine'), 150);
+            setTimeout(() => playCosmicTone(659.25, 0.3, 'sine'), 300);
+            updateUI();
+        }
 
-            gameState.currentSystem = systemId;
-            showNotification(`Traveling to ${starSystems[systemId].name}...`);
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notifications');
+            const div = document.createElement('div');
+            div.className = 'notification';
+            div.textContent = message;
+            
+            if (type === 'success') div.style.borderColor = '#00ff00';
+            else if (type === 'error') div.style.borderColor = '#ff0000';
+            else if (type === 'warning') div.style.borderColor = '#ffff00';
+            else div.style.borderColor = '#00ff00';
+            
+            container.appendChild(div);
             
             setTimeout(() => {
-                showNotification(`Arrived at ${starSystems[systemId].name}!`);
-                updateUI();
-                closePanel('map');
-            }, travelTime);
+                div.style.opacity = '0';
+                div.style.transform = 'translateX(100%)';
+                setTimeout(() => div.remove(), 300);
+            }, 3000);
         }
 
-        // Game Loop - Vessel Management
-        function gameLoop() {
-            const now = Date.now();
-            const delta = now - gameState.lastUpdate;
+        function triggerRandomEvent() {
+            const events = [
+                { msg: '✨ Found ancient alien artifact! +500M', minerals: 500, energy: 0 },
+                { msg: '⚡ Solar flare bonus! +100E', minerals: 0, energy: 100 },
+                { msg: '🛸 Alien traders passed by! +200M', minerals: 200, energy: 0 },
+                { msg: '💫 Wormhole discovered! +50E', minerals: 0, energy: 50 },
+                { msg: '🌟 Rare mineral deposit found! +1000M', minerals: 1000, energy: 0 }
+            ];
+            
+            const event = events[Math.floor(Math.random() * events.length)];
+            state.minerals += event.minerals;
+            state.energy += event.energy;
+            
+            showNotification(event.msg, 'success');
+            playCosmicTone(880, 0.4, 'sine');
+            updateUI();
+        }
 
-            if (delta > 1000) { // Update every second
-                gameState.vessels.forEach(vessel => {
-                    if (vessel.status === 'idle') {
-                        // Assign mining task
-                        vessel.status = 'mining';
-                        vessel.miningProgress = 0;
-                    } else if (vessel.status === 'mining') {
-                        const miningSpeed = gameState.researchedTechs.includes('quantum_miner') ? 2 :
-                                           gameState.researchedTechs.includes('mining_drone') ? 1.5 : 1;
-                        vessel.miningProgress += 2 * miningSpeed;
-
-                        if (vessel.miningProgress >= 100) {
-                            const minedAmount = vessel.type === 'mining' ? 10 : 100;
-                            gameState.minerals += minedAmount;
-                            gameState.totalMinedForGoal += minedAmount;
-                            vessel.resources += minedAmount;
-                            vessel.miningProgress = 0;
-                            showNotification(`Vessel mined ${minedAmount} minerals!`);
+        // Passive income from vessels
+        setInterval(() => {
+            let totalMinerals = 0;
+            let totalEnergy = 0;
+            
+            state.vessels.forEach(vessel => {
+                if (vessel.type === 'mining') {
+                    totalMinerals += vessel.rate;
+                    if (Math.random() < 0.1) totalEnergy += 0.5;
+                } else if (vessel.type === 'interstellar') {
+                    if (vessel.system === 'transit') {
+                        vessel.progress += vessel.rate;
+                        if (vessel.progress >= 100) {
+                            vessel.system = vessel.destination;
+                            vessel.location = systems[vessel.destination].bodies[1]?.name || 'Orbit';
+                            vessel.type = 'mining';
+                            vessel.progress = 0;
+                            showNotification(`🛸 Vessel arrived at ${systems[vessel.destination].name}!`, 'success');
+                            playCosmicTone(659.25, 0.2, 'sine');
+                            playCosmicTone(783.99, 0.2, 'sine');
                         }
-                    } else if (vessel.status === 'traveling') {
-                        vessel.travelProgress += 1;
-                        if (vessel.travelProgress >= 100) {
-                            vessel.status = 'mining';
-                            vessel.miningProgress = 0;
-                            showNotification('Vessel arrived and started mining!');
-                        }
+                    } else {
+                        totalMinerals += vessel.rate * 2;
+                        if (Math.random() < 0.15) totalEnergy += 1;
                     }
-                });
-
-                gameState.lastUpdate = now;
+                }
+            });
+            
+            if (totalMinerals > 0) {
+                state.minerals += totalMinerals;
+                state.energy += totalEnergy;
                 updateUI();
             }
+        }, 1000);
 
-            requestAnimationFrame(gameLoop);
+        // 3D Rendering
+        function project(x, y, z) {
+            const fov = 500 * state.zoom;
+            const scale = fov / (fov + z);
+            return {
+                x: canvas.width / 2 + x * scale,
+                y: canvas.height / 2 + y * scale,
+                scale: scale
+            };
         }
 
-        // Initialize animations
-        drawSunAnimation();
-        drawBlackHoleAnimation();
-        drawGalaxyAnimation();
-        renderSolarSystem();
-        gameLoop();
-        updateUI();
+        function rotateX(point, angle) {
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            return {
+                x: point.x,
+                y: point.y * cos - point.z * sin,
+                z: point.y * sin + point.z * cos
+            };
+        }
 
-        // Check button states
-        setInterval(() => {
-            document.getElementById('bh-btn').disabled = !gameState.researchedTechs.includes('blackhole_access');
-            document.getElementById('galaxy-btn').disabled = !gameState.researchedTechs.includes('galactic_harvester');
-        }, 500);
+        function rotateY(point, angle) {
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            return {
+                x: point.x * cos - point.z * sin,
+                y: point.y,
+                z: point.x * sin + point.z * cos
+            };
+        }
+
+        let time = 0;
+        function render() {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw stars
+            for (let i = 0; i < 300; i++) {
+                const x = (Math.sin(i * 567) * canvas.width + canvas.width) % canvas.width;
+                const y = (Math.cos(i * 234) * canvas.height + canvas.height) % canvas.height;
+                const size = Math.random() * 2 + 1;
+                const brightness = Math.random() * 0.5 + 0.5;
+                
+                ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+                ctx.fillRect(Math.floor(x), Math.floor(y), Math.floor(size), Math.floor(size));
+            }
+            
+            const system = systems[state.currentSystem];
+            const bodies = [];
+            
+            // Process celestial bodies
+            system.bodies.forEach(body => {
+                let angle = time * body.speed;
+                if (body.type === 'star' && body.distance === 0) {
+                    bodies.push({
+                        ...body,
+                        x: 0,
+                        y: 0,
+                        z: 0
+                    });
+                } else {
+                    const x = Math.cos(angle) * body.distance;
+                    const z = Math.sin(angle) * body.distance;
+                    
+                    let point = { x, y: 0, z };
+                    point = rotateX(point, state.rotation.x);
+                    point = rotateY(point, state.rotation.y);
+                    
+                    bodies.push({
+                        ...body,
+                        x: point.x,
+                        y: point.y,
+                        z: point.z
+                    });
+                }
+            });
+            
+            // Sort by z-depth
+            bodies.sort((a, b) => b.z - a.z);
+            
+            // Draw bodies
+            bodies.forEach(body => {
+                const projected = project(body.x, body.y, body.z + 500);
+                const size = Math.max(2, body.size * projected.scale * state.zoom * 2);
+                
+                if (projected.scale > 0) {
+                    // Pixel-style rendering
+                    const pixelSize = Math.max(1, Math.floor(size / 4));
+                    const pixelsAcross = Math.ceil(size / pixelSize);
+                    
+                    for (let px = 0; px < pixelsAcross; px++) {
+                        for (let py = 0; py < pixelsAcross; py++) {
+                            const offsetX = (px - pixelsAcross / 2) * pixelSize;
+                            const offsetY = (py - pixelsAcross / 2) * pixelSize;
+                            const dist = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
+                            
+                            if (dist <= size / 2) {
+                                const shade = 1 - (dist / (size / 2)) * 0.3;
+                                const r = parseInt(body.color.slice(1, 3), 16) * shade;
+                                const g = parseInt(body.color.slice(3, 5), 16) * shade;
+                                const b = parseInt(body.color.slice(5, 7), 16) * shade;
+                                
+                                ctx.fillStyle = `rgb(${Math.floor(r)}, ${Math.floor(g)}, ${Math.floor(b)})`;
+                                ctx.fillRect(
+                                    Math.floor(projected.x + offsetX),
+                                    Math.floor(projected.y + offsetY),
+                                    pixelSize + 1,
+                                    pixelSize + 1
+                                );
+                            }
+                        }
+                    }
+                    
+                    // Draw rings for Saturn
+                    if (body.rings) {
+                        ctx.strokeStyle = 'rgba(200, 180, 150, 0.6)';
+                        ctx.lineWidth = Math.max(1, 2 * projected.scale);
+                        ctx.beginPath();
+                        ctx.ellipse(projected.x, projected.y, size * 1.8, size * 0.6, 0, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    
+                    // Label
+                    if (state.zoom > 0.5) {
+                        ctx.fillStyle = '#00ff00';
+                        ctx.font = `${Math.max(8, Math.floor(10 * state.zoom))}px 'Press Start 2P'`;
+                        ctx.textAlign = 'center';
+                        ctx.fillText(body.name, projected.x, projected.y - size - 5);
+                    }
+                }
+            });
+            
+            // Draw vessels
+            state.vessels.filter(v => v.system === state.currentSystem).forEach(vessel => {
+                const body = system.bodies.find(b => b.name === vessel.location);
+                if (body) {
+                    let angle = time * body.speed + 0.5;
+                    const x = Math.cos(angle) * (body.distance + 30);
+                    const z = Math.sin(angle) * (body.distance + 30);
+                    
+                    let point = { x, y: 20, z };
+                    point = rotateX(point, state.rotation.x);
+                    point = rotateY(point, state.rotation.y);
+                    
+                    const projected = project(point.x, point.y, point.z + 500);
+                    
+                    if (projected.scale > 0) {
+                        const vesselSize = Math.max(3, 6 * projected.scale * state.zoom);
+                        const color = vessel.type === 'mining' ? '#00ffff' : '#ff00ff';
+                        
+                        // Pixel spaceship
+                        ctx.fillStyle = color;
+                        ctx.fillRect(Math.floor(projected.x - vesselSize/2), Math.floor(projected.y - vesselSize/2), vesselSize, vesselSize);
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(Math.floor(projected.x - vesselSize/4), Math.floor(projected.y - vesselSize/4), vesselSize/2, vesselSize/2);
+                    }
+                }
+            });
+            
+            // Draw mini-map
+            miniMapCtx.fillStyle = '#000000';
+            miniMapCtx.fillRect(0, 0, 200, 200);
+            
+            const miniScale = 0.3;
+            const centerX = 100;
+            const centerY = 100;
+            
+            system.bodies.forEach(body => {
+                if (body.distance === 0) {
+                    miniMapCtx.fillStyle = body.color;
+                    miniMapCtx.fillRect(centerX - 3, centerY - 3, 6, 6);
+                } else {
+                    const angle = time * body.speed;
+                    const x = centerX + Math.cos(angle) * body.distance * miniScale;
+                    const y = centerY + Math.sin(angle) * body.distance * miniScale;
+                    
+                    miniMapCtx.fillStyle = body.color;
+                    const size = Math.max(2, body.size * miniScale);
+                    miniMapCtx.fillRect(x - size/2, y - size/2, size, size);
+                }
+            });
+            
+            // Player indicator on mini-map
+            miniMapCtx.fillStyle = '#00ff00';
+            miniMapCtx.fillRect(centerX - 4, centerY - 4, 8, 8);
+            
+            time += 0.01;
+            requestAnimationFrame(render);
+        }
+
+        // Input handling
+        canvas.addEventListener('mousedown', e => {
+            state.isDragging = true;
+            state.lastMouse = { x: e.clientX, y: e.clientY };
+        });
+
+        canvas.addEventListener('mousemove', e => {
+            if (state.isDragging) {
+                const deltaX = e.clientX - state.lastMouse.x;
+                const deltaY = e.clientY - state.lastMouse.y;
+                
+                state.rotation.y += deltaX * 0.01;
+                state.rotation.x += deltaY * 0.01;
+                state.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, state.rotation.x));
+                
+                state.lastMouse = { x: e.clientX, y: e.clientY };
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            state.isDragging = false;
+        });
+
+        canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            const zoomSpeed = 0.1;
+            const newZoom = state.zoom - Math.sign(e.deltaY) * zoomSpeed;
+            state.zoom = Math.max(0.1, Math.min(10, newZoom)); // Super zoom from 0.1x to 10x
+            updateUI();
+        }, { passive: false });
+
+        // Touch support
+        canvas.addEventListener('touchstart', e => {
+            if (e.touches.length === 1) {
+                state.isDragging = true;
+                state.lastMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+        });
+
+        canvas.addEventListener('touchmove', e => {
+            if (state.isDragging && e.touches.length === 1) {
+                const deltaX = e.touches[0].clientX - state.lastMouse.x;
+                const deltaY = e.touches[0].clientY - state.lastMouse.y;
+                
+                state.rotation.y += deltaX * 0.01;
+                state.rotation.x += deltaY * 0.01;
+                state.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, state.rotation.x));
+                
+                state.lastMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+        });
+
+        canvas.addEventListener('touchend', () => {
+            state.isDragging = false;
+        });
+
+        // Initialize
+        updateUI();
+        render();
+        
+        // Initial notification
+        setTimeout(() => {
+            showNotification('🎮 Welcome to Cosmic Miner! Explore, mine, and build your fleet!', 'info');
+        }, 1000);
     </script>
 </body>
 </html>
