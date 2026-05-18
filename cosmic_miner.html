@@ -16,7 +16,7 @@
 
         body {
             font-family: 'Press Start 2P', cursive;
-            background: #0a0a1a;
+            background: #000005;
             color: #00ff88;
             overflow: hidden;
             image-rendering: pixelated;
@@ -31,7 +31,7 @@
         /* Side Menu */
         #side-menu {
             width: 250px;
-            background: linear-gradient(180deg, #1a1a3a 0%, #0d0d2b 100%);
+            background: linear-gradient(180deg, #050510 0%, #000008 100%);
             border-right: 4px solid #00ff88;
             padding: 20px;
             display: flex;
@@ -42,7 +42,7 @@
         }
 
         .menu-section {
-            background: rgba(0, 255, 136, 0.1);
+            background: rgba(0, 255, 136, 0.08);
             border: 2px solid #00ff88;
             border-radius: 4px;
             padding: 15px;
@@ -131,7 +131,7 @@
         }
 
         .modal {
-            background: linear-gradient(180deg, #1a1a3a 0%, #0d0d2b 100%);
+            background: linear-gradient(180deg, #050510 0%, #000008 100%);
             border: 4px solid #00ff88;
             border-radius: 8px;
             padding: 30px;
@@ -259,7 +259,7 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            background: linear-gradient(180deg, #1a1a3a 0%, #0d0d2b 100%);
+            background: linear-gradient(180deg, #050510 0%, #000008 100%);
             border: 3px solid #00ff88;
             border-radius: 4px;
             padding: 15px 20px;
@@ -278,7 +278,7 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             border: 2px solid #00ff88;
             border-radius: 4px;
             padding: 15px;
@@ -287,7 +287,7 @@
 
         /* Goal Tracker */
         #goal-tracker {
-            background: rgba(255, 204, 0, 0.1);
+            background: rgba(255, 204, 0, 0.08);
             border: 2px solid #ffcc00;
             border-radius: 4px;
             padding: 15px;
@@ -311,7 +311,7 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: #0a0a1a;
+            background: #000005;
         }
 
         ::-webkit-scrollbar-thumb {
@@ -546,27 +546,33 @@
         const starSystems = {
             solar: {
                 name: 'Sol System',
-                description: 'Earth\'s home system with abundant resources',
+                description: 'Earth\'s home system with abundant resources - 8 planets orbiting a G-type star',
                 color: '#ffcc00',
                 planets: ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'],
                 x: 350,
-                y: 250
+                y: 250,
+                type: 'single_star',
+                starColor: '#ffcc00'
             },
             alpha: {
                 name: 'Alpha Centauri',
-                description: 'Nearest star system, rich in rare minerals',
+                description: 'Nearest star system - Binary stars (A & B) with rich mineral deposits',
                 color: '#00ffff',
-                planets: ['Alpha Centauri A', 'Alpha Centauri B', 'Proxima b'],
+                planets: ['Proxima b', 'Alpha Centauri Ab', 'Alpha Centauri Ac'],
                 x: 150,
-                y: 150
+                y: 150,
+                type: 'binary_star',
+                starColor: '#ffdd88'
             },
             proxima: {
                 name: 'Proxima Centauri',
-                description: 'Red dwarf system with unique resources',
+                description: 'Red dwarf system with tidally locked habitable worlds',
                 color: '#ff6666',
-                planets: ['Proxima b', 'Proxima c'],
+                planets: ['Proxima b', 'Proxima c', 'Proxima d'],
                 x: 550,
-                y: 350
+                y: 350,
+                type: 'red_dwarf',
+                starColor: '#ff4444'
             }
         };
 
@@ -647,7 +653,7 @@
         }
 
         function renderSolarSystem() {
-            ctx.fillStyle = '#0a0a1a';
+            ctx.fillStyle = '#000005';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Draw stars
@@ -663,42 +669,113 @@
             const centerY = canvas.height / 2;
             const scale = cameraZoom;
 
-            // Draw planets
-            planets.forEach((planet, index) => {
-                if (planet.distance === 0) {
-                    // Sun
-                    drawPixelatedCircle(centerX, centerY, planet.radius * scale, planet.color, true);
-                } else {
-                    planetAngles[index] += planet.speed;
-                    
-                    const x = centerX + Math.cos(planetAngles[index] + cameraAngle) * planet.distance * scale;
-                    const y = centerY + Math.sin(planetAngles[index] + cameraAngle) * planet.distance * scale * 0.3;
-                    
-                    // Draw orbit
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.ellipse(centerX, centerY, planet.distance * scale, planet.distance * scale * 0.3, 0, 0, Math.PI * 2);
-                    ctx.stroke();
-
-                    // Draw planet
-                    drawPixelatedCircle(x, y, planet.radius * scale, planet.color);
-
-                    // Saturn's ring
-                    if (planet.ring) {
-                        ctx.strokeStyle = '#ccaa88';
-                        ctx.lineWidth = 2;
+            // Get current system data
+            const currentSystemData = starSystems[gameState.currentSystem];
+            
+            // Draw different celestial objects based on current system
+            if (gameState.currentSystem === 'solar') {
+                // Sol System - normal planets
+                planets.forEach((planet, index) => {
+                    if (planet.distance === 0) {
+                        // Sun
+                        drawPixelatedCircle(centerX, centerY, planet.radius * scale, planet.color, true);
+                    } else {
+                        planetAngles[index] += planet.speed;
+                        
+                        const x = centerX + Math.cos(planetAngles[index] + cameraAngle) * planet.distance * scale;
+                        const y = centerY + Math.sin(planetAngles[index] + cameraAngle) * planet.distance * scale * 0.3;
+                        
+                        // Draw orbit
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                        ctx.lineWidth = 1;
                         ctx.beginPath();
-                        ctx.ellipse(x, y, planet.radius * scale * 2, planet.radius * scale * 0.5, 0.2, 0, Math.PI * 2);
+                        ctx.ellipse(centerX, centerY, planet.distance * scale, planet.distance * scale * 0.3, 0, 0, Math.PI * 2);
                         ctx.stroke();
-                    }
 
-                    // Planet label
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = '8px "Press Start 2P"';
-                    ctx.fillText(planet.name, x - 20, y + planet.radius * scale + 15);
-                }
-            });
+                        // Draw planet
+                        drawPixelatedCircle(x, y, planet.radius * scale, planet.color);
+
+                        // Saturn's ring
+                        if (planet.ring) {
+                            ctx.strokeStyle = '#ccaa88';
+                            ctx.lineWidth = 2;
+                            ctx.beginPath();
+                            ctx.ellipse(x, y, planet.radius * scale * 2, planet.radius * scale * 0.5, 0.2, 0, Math.PI * 2);
+                            ctx.stroke();
+                        }
+
+                        // Planet label
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = '8px "Press Start 2P"';
+                        ctx.fillText(planet.name, x - 20, y + planet.radius * scale + 15);
+                    }
+                });
+            } else if (gameState.currentSystem === 'alpha') {
+                // Alpha Centauri System - Binary stars with planets
+                const binaryAngle = Date.now() * 0.0005;
+                const binaryDistance = 80 * scale;
+                
+                // Alpha Centauri A (yellow star)
+                const ax = centerX + Math.cos(binaryAngle) * binaryDistance;
+                const ay = centerY + Math.sin(binaryAngle) * binaryDistance * 0.3;
+                drawPixelatedCircle(ax, ay, 35 * scale, '#ffdd88', true);
+                
+                // Alpha Centauri B (orange star)
+                const bx = centerX - Math.cos(binaryAngle) * binaryDistance;
+                const by = centerY - Math.sin(binaryAngle) * binaryDistance * 0.3;
+                drawPixelatedCircle(bx, by, 28 * scale, '#ffaa66', true);
+                
+                // Proxima b (habitable planet around both stars)
+                planetAngles[0] += 0.005;
+                const px = centerX + Math.cos(planetAngles[0]) * 150 * scale;
+                const py = centerY + Math.sin(planetAngles[0]) * 150 * scale * 0.3;
+                drawPixelatedCircle(px, py, 10 * scale, '#66ff88', false);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '8px "Press Start 2P"';
+                ctx.fillText('Proxima b', px - 25, py + 20);
+                
+                // Alpha Centauri Ab
+                planetAngles[1] += 0.003;
+                const abx = centerX + Math.cos(planetAngles[1]) * 200 * scale;
+                const aby = centerY + Math.sin(planetAngles[1]) * 200 * scale * 0.3;
+                drawPixelatedCircle(abx, aby, 12 * scale, '#88ccff', false);
+                ctx.fillText('Alpha Centauri Ab', abx - 40, aby + 20);
+                
+                // Alpha Centauri Ac
+                planetAngles[2] += 0.002;
+                const acx = centerX + Math.cos(planetAngles[2]) * 250 * scale;
+                const acy = centerY + Math.sin(planetAngles[2]) * 250 * scale * 0.3;
+                drawPixelatedCircle(acx, acy, 8 * scale, '#ff88aa', false);
+                ctx.fillText('Alpha Centauri Ac', acx - 35, acy + 20);
+                
+            } else if (gameState.currentSystem === 'proxima') {
+                // Proxima Centauri System - Red dwarf with planets
+                // Proxima Centauri (red dwarf star)
+                drawPixelatedCircle(centerX, centerY, 25 * scale, '#ff4444', true);
+                
+                // Proxima b (tidally locked habitable world)
+                planetAngles[0] += 0.008;
+                const pbx = centerX + Math.cos(planetAngles[0]) * 100 * scale;
+                const pby = centerY + Math.sin(planetAngles[0]) * 100 * scale * 0.3;
+                drawPixelatedCircle(pbx, pby, 9 * scale, '#aa6644', false);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '8px "Press Start 2P"';
+                ctx.fillText('Proxima b', pbx - 25, pby + 20);
+                
+                // Proxima c (ice giant)
+                planetAngles[1] += 0.004;
+                const pcx = centerX + Math.cos(planetAngles[1]) * 180 * scale;
+                const pcy = centerY + Math.sin(planetAngles[1]) * 180 * scale * 0.3;
+                drawPixelatedCircle(pcx, pcy, 14 * scale, '#88aaff', false);
+                ctx.fillText('Proxima c', pcx - 30, pcy + 20);
+                
+                // Proxima d (small rocky)
+                planetAngles[2] += 0.012;
+                const pdx = centerX + Math.cos(planetAngles[2]) * 60 * scale;
+                const pdy = centerY + Math.sin(planetAngles[2]) * 60 * scale * 0.3;
+                drawPixelatedCircle(pdx, pdy, 5 * scale, '#aaaaaa', false);
+                ctx.fillText('Proxima d', pdx - 25, pdy + 20);
+            }
 
             // Draw UI hint
             ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
@@ -715,7 +792,7 @@
             let frame = 0;
 
             function animate() {
-                sunCtx.fillStyle = '#1a1a3a';
+                sunCtx.fillStyle = '#000005';
                 sunCtx.fillRect(0, 0, 300, 300);
 
                 const centerX = 150;
@@ -787,7 +864,7 @@
             let frame = 0;
 
             function animate() {
-                galCtx.fillStyle = '#0a0a1a';
+                galCtx.fillStyle = '#000005';
                 galCtx.fillRect(0, 0, 300, 300);
 
                 const centerX = 150;
@@ -840,7 +917,7 @@
             const mapCanvas = document.getElementById('map-canvas');
             const mapCtx = mapCanvas.getContext('2d');
 
-            mapCtx.fillStyle = '#0a0a1a';
+            mapCtx.fillStyle = '#000005';
             mapCtx.fillRect(0, 0, 700, 500);
 
             // Draw stars
