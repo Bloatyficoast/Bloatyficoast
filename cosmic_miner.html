@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Miner - 8-Bit Space Exploration</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background: #000000;
+            color: #00ff00;
+            overflow: hidden;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        
+        #gameCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        #ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        #sideMenu {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 220px;
+            height: 100vh;
+            background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+            border-right: 4px solid #00ff00;
+            padding: 20px 15px;
+            pointer-events: auto;
+            overflow-y: auto;
+            image-rendering: pixelated;
+        }
+        
+        .menuTitle {
+            color: #00ff00;
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0px #003300;
+            letter-spacing: 1px;
+        }
+        
+        .resource {
+            background: #0a0a0a;
+            border: 3px solid #00ff00;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 10px;
+            image-rendering: pixelated;
+        }
+        
+        .resourceName {
+            color: #00ffff;
+            margin-bottom: 6px;
+        }
+        
+        .resourceValue {
+            color: #ffffff;
+            font-size: 12px;
+        }
+        
+        .btn {
+            background: #000000;
+            border: 3px solid #00ff00;
+            color: #00ff00;
+            padding: 12px 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: all 0.1s;
+            image-rendering: pixelated;
+            text-transform: uppercase;
+        }
+        
+        .btn:hover {
+            background: #00ff00;
+            color: #000000;
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0px #003300;
+        }
+        
+        .btn:active {
+            transform: translate(0px, 0px);
+            box-shadow: 0px 0px 0px #003300;
+        }
+        
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            border-top: 2px dashed #00ff00;
+            padding-top: 15px;
+        }
+        
+        #systemInfo {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #00ff00;
+            padding: 15px;
+            font-size: 10px;
+            pointer-events: auto;
+            max-width: 300px;
+            image-rendering: pixelated;
+        }
+        
+        #notifications {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .notification {
+            background: rgba(0, 0, 0, 0.95);
+            border: 3px solid #00ff00;
+            color: #00ff00;
+            padding: 12px;
+            margin-bottom: 10px;
+            font-size: 9px;
+            animation: slideIn 0.3s ease-out;
+            image-rendering: pixelated;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        #zoomIndicator {
+            position: fixed;
+            bottom: 20px;
+            left: 240px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #00ff00;
+            padding: 10px;
+            font-size: 9px;
+            image-rendering: pixelated;
+        }
+        
+        #musicControl {
+            position: fixed;
+            top: 20px;
+            left: 240px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #00ff00;
+            padding: 10px;
+            font-size: 9px;
+            pointer-events: auto;
+            image-rendering: pixelated;
+        }
+        
+        .pixel-border {
+            position: relative;
+        }
+        
+        .pixel-border::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border: 2px solid transparent;
+            border-top-color: #00ff00;
+            border-left-color: #00ff00;
+            clip-path: polygon(0 0, 20px 0, 20px 2px, 4px 2px, 4px 20px, 2px 20px, 2px 4px, 0 4px, 0 100%, 100% 100%, 100% calc(100% - 20px), calc(100% - 2px) calc(100% - 20px), calc(100% - 2px) calc(100% - 4px), calc(100% - 20px) calc(100% - 4px), calc(100% - 20px) 100%, 100% 100%);
+        }
+        
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #000000;
+            border: 2px solid #003300;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border: 2px solid #000000;
+        }
+        
+        .techItem {
+            background: #0a0a0a;
+            border: 2px solid #003300;
+            padding: 10px;
+            margin-bottom: 8px;
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.1s;
+            image-rendering: pixelated;
+        }
+        
+        .techItem.unlocked {
+            border-color: #00ff00;
+            background: #001100;
+        }
+        
+        .techItem.researching {
+            border-color: #ffff00;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .vesselSlot {
+            background: #0a0a0a;
+            border: 2px solid #003300;
+            padding: 8px;
+            margin-bottom: 6px;
+            font-size: 8px;
+            image-rendering: pixelated;
+        }
+        
+        .vesselSlot.active {
+            border-color: #00ffff;
+        }
+        
+        #miniMap {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #00ff00;
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="ui">
+        <div id="sideMenu">
+            <div class="menuTitle">✦ COSMIC MINER ✦</div>
+            
+            <div class="section">
+                <div class="resource">
+                    <div class="resourceName">MINERALS</div>
+                    <div class="resourceValue" id="mineralsDisplay">50</div>
+                </div>
+                <div class="resource">
+                    <div class="resourceName">ENERGY</div>
+                    <div class="resourceValue" id="energyDisplay">5</div>
+                </div>
+                <div class="resource">
+                    <div class="resourceName">FLEET SIZE</div>
+                    <div class="resourceValue" id="fleetDisplay">0</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <button class="btn" onclick="harvest('sun')">☀ Harvest Sun</button>
+                <button class="btn" onclick="harvest('blackhole')">⬤ Harvest Black Hole</button>
+                <button class="btn" onclick="harvest('galaxy')">◈ Harvest Galaxy</button>
+            </div>
+            
+            <div class="section">
+                <button class="btn" onclick="launchMiningVessel()">🚀 Launch Mining Vessel (50M, 5E)</button>
+                <button class="btn" onclick="launchInterstellarVessel()">🛸 Launch Interstellar (1M M, 500E)</button>
+            </div>
+            
+            <div class="section">
+                <div class="menuTitle">TECH TREE</div>
+                <div id="techTree"></div>
+            </div>
+            
+            <div class="section">
+                <div class="menuTitle">ACTIVE VESSELS</div>
+                <div id="vesselList"></div>
+            </div>
+            
+            <div class="section">
+                <button class="btn" onclick="travelTo('sol')">☀ Sol System</button>
+                <button class="btn" onclick="travelTo('alpha')">★ Alpha Centauri</button>
+                <button class="btn" onclick="travelTo('proxima')">● Proxima Centauri</button>
+                <button class="btn" onclick="travelTo('trappist')">◆ TRAPPIST-1</button>
+                <button class="btn" onclick="travelTo('kepler')">◇ Kepler-186</button>
+            </div>
+        </div>
+        
+        <div id="musicControl">
+            <button class="btn" onclick="toggleMusic()" id="musicBtn">🎵 Music: OFF</button>
+        </div>
+        
+        <div id="systemInfo">
+            <div class="menuTitle">CURRENT SYSTEM</div>
+            <div id="systemName">Sol System</div>
+            <div id="systemDesc" style="margin-top: 10px; color: #00ffff;">The home star system of humanity. Contains 8 planets.</div>
+            <div id="systemStats" style="margin-top: 10px;"></div>
+        </div>
+        
+        <canvas id="miniMap"></canvas>
+        
+        <div id="zoomIndicator">
+            ZOOM: <span id="zoomLevel">100%</span><br>
+            SCROLL to zoom<br>
+            DRAG to rotate
+        </div>
+        
+        <div id="notifications"></div>
+    </div>
+
+    <script>
+        // Game State
+        const state = {
+            minerals: 50,
+            energy: 5,
+            vessels: [],
+            techs: {},
+            currentSystem: 'sol',
+            zoom: 1,
+            rotation: { x: 0.3, y: 0 },
+            isDragging: false,
+            lastMouse: { x: 0, y: 0 },
+            musicPlaying: false,
+            audioContext: null,
+            oscillators: [],
+            lastHarvest: { sun: 0, blackhole: 0, galaxy: 0 },
+            discoveries: [],
+            events: []
+        };
+
+        // Tech Tree
+        const techTree = [
+            { id: 'mining1', name: 'Efficient Mining', cost: { minerals: 100, energy: 10 }, effect: 'harvest +25%', unlocked: false },
+            { id: 'mining2', name: 'Advanced Harvesters', cost: { minerals: 500, energy: 50 }, effect: 'harvest +50%', unlocked: false },
+            { id: 'speed1', name: 'Faster Vessels', cost: { minerals: 200, energy: 20 }, effect: 'speed +30%', unlocked: false },
+            { id: 'speed2', name: 'Warp Drive', cost: { minerals: 1000, energy: 100 }, effect: 'speed +100%', unlocked: false },
+            { id: 'storage1', name: 'Expanded Cargo', cost: { minerals: 300, energy: 30 }, effect: 'cargo +50%', unlocked: false },
+            { id: 'storage2', name: 'Massive Holds', cost: { minerals: 1500, energy: 150 }, effect: 'cargo +150%', unlocked: false },
+            { id: 'scanner1', name: 'Deep Scanner', cost: { minerals: 400, energy: 40 }, effect: 'find rare minerals', unlocked: false },
+            { id: 'scanner2', name: 'Quantum Scanner', cost: { minerals: 2000, energy: 200 }, effect: 'find artifacts', unlocked: false }
+        ];
+
+        // Star Systems
+        const systems = {
+            sol: {
+                name: 'Sol System',
+                description: 'The home star system of humanity. Contains 8 planets.',
+                type: 'single_star',
+                starColor: '#ffff00',
+                bodies: [
+                    { name: 'Mercury', type: 'planet', distance: 80, size: 4, color: '#888888', speed: 0.04 },
+                    { name: 'Venus', type: 'planet', distance: 110, size: 7, color: '#ffcc66', speed: 0.03 },
+                    { name: 'Earth', type: 'planet', distance: 150, size: 7, color: '#0066ff', speed: 0.025 },
+                    { name: 'Mars', type: 'planet', distance: 190, size: 5, color: '#ff3300', speed: 0.02 },
+                    { name: 'Jupiter', type: 'planet', distance: 280, size: 18, color: '#cc9966', speed: 0.012 },
+                    { name: 'Saturn', type: 'planet', distance: 360, size: 15, color: '#ffcc99', speed: 0.009, rings: true },
+                    { name: 'Uranus', type: 'planet', distance: 440, size: 10, color: '#66ccff', speed: 0.006 },
+                    { name: 'Neptune', type: 'planet', distance: 520, size: 10, color: '#3366ff', speed: 0.004 }
+                ]
+            },
+            alpha: {
+                name: 'Alpha Centauri',
+                description: 'Binary star system with potential habitable worlds.',
+                type: 'binary_star',
+                starColor: '#ffcc00',
+                bodies: [
+                    { name: 'Alpha Cen A', type: 'star', distance: 0, size: 12, color: '#ffcc00', speed: 0 },
+                    { name: 'Alpha Cen B', type: 'star', distance: 40, size: 10, color: '#ff8800', speed: 0.02 },
+                    { name: 'Proxima b', type: 'planet', distance: 120, size: 6, color: '#66ff66', speed: 0.015 },
+                    { name: 'Alpha Ab', type: 'planet', distance: 180, size: 8, color: '#cc66ff', speed: 0.01 },
+                    { name: 'Alpha Ac', type: 'planet', distance: 240, size: 7, color: '#ff6699', speed: 0.008 }
+                ]
+            },
+            proxima: {
+                name: 'Proxima Centauri',
+                description: 'Red dwarf system with tidally locked worlds.',
+                type: 'red_dwarf',
+                starColor: '#ff3300',
+                bodies: [
+                    { name: 'Proxima', type: 'star', distance: 0, size: 8, color: '#ff3300', speed: 0 },
+                    { name: 'Proxima b', type: 'planet', distance: 90, size: 6, color: '#996633', speed: 0.02 },
+                    { name: 'Proxima c', type: 'planet', distance: 150, size: 9, color: '#6699ff', speed: 0.012 },
+                    { name: 'Proxima d', type: 'planet', distance: 200, size: 4, color: '#cccccc', speed: 0.008 }
+                ]
+            },
+            trappist: {
+                name: 'TRAPPIST-1',
+                description: 'Ultra-cool dwarf with seven Earth-sized planets.',
+                type: 'red_dwarf',
+                starColor: '#ff6600',
+                bodies: [
+                    { name: 'TRAPPIST-1', type: 'star', distance: 0, size: 7, color: '#ff6600', speed: 0 },
+                    { name: 'TRAPPIST-1b', type: 'planet', distance: 70, size: 5, color: '#ff9966', speed: 0.025 },
+                    { name: 'TRAPPIST-1c', type: 'planet', distance: 95, size: 5, color: '#ffcc99', speed: 0.02 },
+                    { name: 'TRAPPIST-1d', type: 'planet', distance: 120, size: 5, color: '#66ff99', speed: 0.018 },
+                    { name: 'TRAPPIST-1e', type: 'planet', distance: 145, size: 5, color: '#66ccff', speed: 0.015 },
+                    { name: 'TRAPPIST-1f', type: 'planet', distance: 170, size: 5, color: '#9966ff', speed: 0.012 },
+                    { name: 'TRAPPIST-1g', type: 'planet', distance: 195, size: 5, color: '#cc66ff', speed: 0.01 },
+                    { name: 'TRAPPIST-1h', type: 'planet', distance: 220, size: 5, color: '#ff66cc', speed: 0.008 }
+                ]
+            },
+            kepler: {
+                name: 'Kepler-186',
+                description: 'Red dwarf with five known planets, one in habitable zone.',
+                type: 'red_dwarf',
+                starColor: '#ff4400',
+                bodies: [
+                    { name: 'Kepler-186', type: 'star', distance: 0, size: 8, color: '#ff4400', speed: 0 },
+                    { name: 'Kepler-186b', type: 'planet', distance: 80, size: 5, color: '#ffaa66', speed: 0.022 },
+                    { name: 'Kepler-186c', type: 'planet', distance: 110, size: 5, color: '#ffcc66', speed: 0.018 },
+                    { name: 'Kepler-186d', type: 'planet', distance: 140, size: 5, color: '#ff9966', speed: 0.014 },
+                    { name: 'Kepler-186e', type: 'planet', distance: 170, size: 5, color: '#ff8866', speed: 0.01 },
+                    { name: 'Kepler-186f', type: 'planet', distance: 200, size: 6, color: '#66ff66', speed: 0.008 }
+                ]
+            }
+        };
+
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const miniMapCanvas = document.getElementById('miniMap');
+        const miniMapCtx = miniMapCanvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            miniMapCanvas.width = 200;
+            miniMapCanvas.height = 200;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // Audio synthesis for cosmic music
+        function initAudio() {
+            if (!state.audioContext) {
+                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playCosmicTone(freq, duration, type = 'sine') {
+            if (!state.audioContext || !state.musicPlaying) return;
+            
+            const oscillator = state.audioContext.createOscillator();
+            const gainNode = state.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(state.audioContext.destination);
+            
+            oscillator.frequency.value = freq;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.1, state.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, state.audioContext.currentTime + duration);
+            
+            oscillator.start(state.audioContext.currentTime);
+            oscillator.stop(state.audioContext.currentTime + duration);
+            
+            state.oscillators.push(oscillator);
+            setTimeout(() => {
+                const index = state.oscillators.indexOf(oscillator);
+                if (index > -1) state.oscillators.splice(index, 1);
+            }, duration * 1000);
+        }
+
+        function generateCosmicMusic() {
+            if (!state.musicPlaying) return;
+            
+            const scales = [
+                [196, 220, 246.94, 261.63, 293.66, 329.63], // G minor
+                [164.81, 196, 220, 246.94, 293.66, 329.63], // E minor
+                [146.83, 174.61, 196, 220, 261.63, 293.66]  // D minor
+            ];
+            
+            const scale = scales[Math.floor(Math.random() * scales.length)];
+            const note = scale[Math.floor(Math.random() * scale.length)];
+            const duration = 2 + Math.random() * 3;
+            const type = ['sine', 'triangle'][Math.floor(Math.random() * 2)];
+            
+            playCosmicTone(note, duration, type);
+            
+            // Add harmonic
+            setTimeout(() => {
+                playCosmicTone(note * 1.5, duration * 0.7, 'sine');
+            }, 500);
+            
+            // Schedule next note
+            setTimeout(generateCosmicMusic, duration * 1000 * (0.5 + Math.random() * 0.5));
+        }
+
+        function toggleMusic() {
+            initAudio();
+            state.musicPlaying = !state.musicPlaying;
+            document.getElementById('musicBtn').textContent = state.musicPlaying ? '🎵 Music: ON' : '🎵 Music: OFF';
+            
+            if (state.musicPlaying) {
+                generateCosmicMusic();
+                showNotification('🎵 Cosmic ambient music started', 'info');
+            } else {
+                state.oscillators.forEach(osc => {
+                    try { osc.stop(); } catch(e) {}
+                });
+                state.oscillators = [];
+            }
+        }
+
+        // Game functions
+        function updateUI() {
+            document.getElementById('mineralsDisplay').textContent = Math.floor(state.minerals).toLocaleString();
+            document.getElementById('energyDisplay').textContent = Math.floor(state.energy).toLocaleString();
+            document.getElementById('fleetDisplay').textContent = state.vessels.length;
+            document.getElementById('zoomLevel').textContent = Math.round(state.zoom * 100) + '%';
+            
+            const system = systems[state.currentSystem];
+            document.getElementById('systemName').textContent = system.name;
+            document.getElementById('systemDesc').textContent = system.description;
+            document.getElementById('systemStats').innerHTML = `
+                <div style="color: #00ffff;">Stars: ${system.bodies.filter(b => b.type === 'star').length}</div>
+                <div style="color: #00ffff;">Planets: ${system.bodies.filter(b => b.type === 'planet').length}</div>
+                <div style="color: #00ffff;">Vessels: ${state.vessels.filter(v => v.system === state.currentSystem).length}</div>
+            `;
+            
+            updateTechTree();
+            updateVesselList();
+        }
+
+        function updateTechTree() {
+            const container = document.getElementById('techTree');
+            container.innerHTML = '';
+            
+            techTree.forEach(tech => {
+                const div = document.createElement('div');
+                div.className = 'techItem' + (tech.unlocked ? ' unlocked' : '');
+                div.innerHTML = `
+                    <div style="color: ${tech.unlocked ? '#00ff00' : '#00ffff'}">${tech.name}</div>
+                    <div style="color: #888; margin-top: 4px;">${tech.effect}</div>
+                    <div style="color: #ffff00; margin-top: 4px;">${tech.cost.minerals}M ${tech.cost.energy}E</div>
+                `;
+                div.onclick = () => researchTech(tech);
+                container.appendChild(div);
+            });
+        }
+
+        function updateVesselList() {
+            const container = document.getElementById('vesselList');
+            container.innerHTML = '';
+            
+            const systemVessels = state.vessels.filter(v => v.system === state.currentSystem);
+            systemVessels.slice(0, 10).forEach((vessel, index) => {
+                const div = document.createElement('div');
+                div.className = 'vesselSlot';
+                div.innerHTML = `
+                    <div style="color: #00ffff;">${vessel.type === 'mining' ? '⛏️' : '🛸'} ${vessel.type.toUpperCase()}</div>
+                    <div style="color: #888;">${vessel.location}</div>
+                    <div style="color: #00ff00;">+${vessel.rate}/s</div>
+                `;
+                container.appendChild(div);
+            });
+            
+            if (systemVessels.length > 10) {
+                const div = document.createElement('div');
+                div.className = 'vesselSlot';
+                div.style.color = '#888';
+                div.textContent = `+${systemVessels.length - 10} more...`;
+                container.appendChild(div);
+            }
+        }
+
+        function harvest(source) {
+            const now = Date.now();
+            const cooldown = 1000;
+            
+            if (now - state.lastHarvest[source] < cooldown) {
+                showNotification('⏳ Harvesting on cooldown!', 'warning');
+                return;
+            }
+            
+            state.lastHarvest[source] = now;
+            
+            let multiplier = 1;
+            if (state.techs['mining1']) multiplier *= 1.25;
+            if (state.techs['mining2']) multiplier *= 1.5;
+            
+            let minerals, energy, message;
+            
+            switch(source) {
+                case 'sun':
+                    minerals = 15 * multiplier;
+                    energy = 3 * multiplier;
+                    message = '☀ Harvested solar plasma!';
+                    playCosmicTone(440, 0.3, 'sine');
+                    break;
+                case 'blackhole':
+                    minerals = 50 * multiplier;
+                    energy = -2;
+                    message = '⬤ Extracted Hawking radiation!';
+                    playCosmicTone(220, 0.5, 'triangle');
+                    break;
+                case 'galaxy':
+                    minerals = 100 * multiplier;
+                    energy = 10 * multiplier;
+                    message = '◈ Collected cosmic dust!';
+                    playCosmicTone(330, 0.4, 'sine');
+                    break;
+            }
+            
+            state.minerals += minerals;
+            state.energy = Math.max(0, state.energy + energy);
+            
+            showNotification(`${message} +${Math.floor(minerals)}M ${energy >= 0 ? '+' + Math.floor(energy) : Math.floor(energy)}E`, 'success');
+            updateUI();
+            
+            // Random event chance
+            if (Math.random() < 0.05) {
+                triggerRandomEvent();
+            }
+        }
+
+        function launchMiningVessel() {
+            const cost = { minerals: 50, energy: 5 };
+            
+            if (state.minerals < cost.minerals || state.energy < cost.energy) {
+                showNotification('❌ Not enough resources!', 'error');
+                return;
+            }
+            
+            state.minerals -= cost.minerals;
+            state.energy -= cost.energy;
+            
+            const vessel = {
+                id: Date.now(),
+                type: 'mining',
+                system: state.currentSystem,
+                location: systems[state.currentSystem].bodies[Math.floor(Math.random() * systems[state.currentSystem].bodies.length)].name,
+                rate: 2,
+                launched: Date.now()
+            };
+            
+            if (state.techs['speed1']) vessel.rate *= 1.3;
+            if (state.techs['speed2']) vessel.rate *= 2;
+            
+            state.vessels.push(vessel);
+            
+            showNotification(`🚀 Mining vessel launched to ${vessel.location}!`, 'success');
+            playCosmicTone(523.25, 0.2, 'square');
+            updateUI();
+        }
+
+        function launchInterstellarVessel() {
+            const cost = { minerals: 1000000, energy: 500 };
+            
+            if (state.minerals < cost.minerals || state.energy < cost.energy) {
+                showNotification('❌ Need 1M minerals and 500 energy!', 'error');
+                return;
+            }
+            
+            state.minerals -= cost.minerals;
+            state.energy -= cost.energy;
+            
+            const destinations = ['alpha', 'proxima', 'trappist', 'kepler'];
+            const destination = destinations[Math.floor(Math.random() * destinations.length)];
+            
+            const vessel = {
+                id: Date.now(),
+                type: 'interstellar',
+                system: 'transit',
+                destination: destination,
+                progress: 0,
+                rate: 10,
+                launched: Date.now()
+            };
+            
+            state.vessels.push(vessel);
+            
+            showNotification(`🛸 Interstellar vessel en route to ${systems[destination].name}!`, 'success');
+            playCosmicTone(659.25, 0.3, 'sine');
+            playCosmicTone(783.99, 0.3, 'sine');
+            updateUI();
+        }
+
+        function researchTech(tech) {
+            if (tech.unlocked) {
+                showNotification('✅ Technology already researched!', 'info');
+                return;
+            }
+            
+            if (state.minerals < tech.cost.minerals || state.energy < tech.cost.energy) {
+                showNotification('❌ Not enough resources!', 'error');
+                return;
+            }
+            
+            state.minerals -= tech.cost.minerals;
+            state.energy -= tech.cost.energy;
+            tech.unlocked = true;
+            state.techs[tech.id] = true;
+            
+            showNotification(`🔬 Researched ${tech.name}!`, 'success');
+            playCosmicTone(523.25, 0.1, 'sine');
+            setTimeout(() => playCosmicTone(659.25, 0.1, 'sine'), 100);
+            setTimeout(() => playCosmicTone(783.99, 0.2, 'sine'), 200);
+            updateUI();
+        }
+
+        function travelTo(systemKey) {
+            if (systemKey === state.currentSystem) {
+                showNotification('📍 Already in this system!', 'info');
+                return;
+            }
+            
+            state.currentSystem = systemKey;
+            showNotification(`🌌 Travelled to ${systems[systemKey].name}!`, 'info');
+            playCosmicTone(440, 0.2, 'sine');
+            setTimeout(() => playCosmicTone(554.37, 0.2, 'sine'), 150);
+            setTimeout(() => playCosmicTone(659.25, 0.3, 'sine'), 300);
+            updateUI();
+        }
+
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notifications');
+            const div = document.createElement('div');
+            div.className = 'notification';
+            div.textContent = message;
+            
+            if (type === 'success') div.style.borderColor = '#00ff00';
+            else if (type === 'error') div.style.borderColor = '#ff0000';
+            else if (type === 'warning') div.style.borderColor = '#ffff00';
+            else div.style.borderColor = '#00ff00';
+            
+            container.appendChild(div);
+            
+            setTimeout(() => {
+                div.style.opacity = '0';
+                div.style.transform = 'translateX(100%)';
+                setTimeout(() => div.remove(), 300);
+            }, 3000);
+        }
+
+        function triggerRandomEvent() {
+            const events = [
+                { msg: '✨ Found ancient alien artifact! +500M', minerals: 500, energy: 0 },
+                { msg: '⚡ Solar flare bonus! +100E', minerals: 0, energy: 100 },
+                { msg: '🛸 Alien traders passed by! +200M', minerals: 200, energy: 0 },
+                { msg: '💫 Wormhole discovered! +50E', minerals: 0, energy: 50 },
+                { msg: '🌟 Rare mineral deposit found! +1000M', minerals: 1000, energy: 0 }
+            ];
+            
+            const event = events[Math.floor(Math.random() * events.length)];
+            state.minerals += event.minerals;
+            state.energy += event.energy;
+            
+            showNotification(event.msg, 'success');
+            playCosmicTone(880, 0.4, 'sine');
+            updateUI();
+        }
+
+        // Passive income from vessels
+        setInterval(() => {
+            let totalMinerals = 0;
+            let totalEnergy = 0;
+            
+            state.vessels.forEach(vessel => {
+                if (vessel.type === 'mining') {
+                    totalMinerals += vessel.rate;
+                    if (Math.random() < 0.1) totalEnergy += 0.5;
+                } else if (vessel.type === 'interstellar') {
+                    if (vessel.system === 'transit') {
+                        vessel.progress += vessel.rate;
+                        if (vessel.progress >= 100) {
+                            vessel.system = vessel.destination;
+                            vessel.location = systems[vessel.destination].bodies[1]?.name || 'Orbit';
+                            vessel.type = 'mining';
+                            vessel.progress = 0;
+                            showNotification(`🛸 Vessel arrived at ${systems[vessel.destination].name}!`, 'success');
+                            playCosmicTone(659.25, 0.2, 'sine');
+                            playCosmicTone(783.99, 0.2, 'sine');
+                        }
+                    } else {
+                        totalMinerals += vessel.rate * 2;
+                        if (Math.random() < 0.15) totalEnergy += 1;
+                    }
+                }
+            });
+            
+            if (totalMinerals > 0) {
+                state.minerals += totalMinerals;
+                state.energy += totalEnergy;
+                updateUI();
+            }
+        }, 1000);
+
+        // 3D Rendering
+        function project(x, y, z) {
+            const fov = 500 * state.zoom;
+            const scale = fov / (fov + z);
+            return {
+                x: canvas.width / 2 + x * scale,
+                y: canvas.height / 2 + y * scale,
+                scale: scale
+            };
+        }
+
+        function rotateX(point, angle) {
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            return {
+                x: point.x,
+                y: point.y * cos - point.z * sin,
+                z: point.y * sin + point.z * cos
+            };
+        }
+
+        function rotateY(point, angle) {
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            return {
+                x: point.x * cos - point.z * sin,
+                y: point.y,
+                z: point.x * sin + point.z * cos
+            };
+        }
+
+        let time = 0;
+        function render() {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw stars
+            for (let i = 0; i < 300; i++) {
+                const x = (Math.sin(i * 567) * canvas.width + canvas.width) % canvas.width;
+                const y = (Math.cos(i * 234) * canvas.height + canvas.height) % canvas.height;
+                const size = Math.random() * 2 + 1;
+                const brightness = Math.random() * 0.5 + 0.5;
+                
+                ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+                ctx.fillRect(Math.floor(x), Math.floor(y), Math.floor(size), Math.floor(size));
+            }
+            
+            const system = systems[state.currentSystem];
+            const bodies = [];
+            
+            // Process celestial bodies
+            system.bodies.forEach(body => {
+                let angle = time * body.speed;
+                if (body.type === 'star' && body.distance === 0) {
+                    bodies.push({
+                        ...body,
+                        x: 0,
+                        y: 0,
+                        z: 0
+                    });
+                } else {
+                    const x = Math.cos(angle) * body.distance;
+                    const z = Math.sin(angle) * body.distance;
+                    
+                    let point = { x, y: 0, z };
+                    point = rotateX(point, state.rotation.x);
+                    point = rotateY(point, state.rotation.y);
+                    
+                    bodies.push({
+                        ...body,
+                        x: point.x,
+                        y: point.y,
+                        z: point.z
+                    });
+                }
+            });
+            
+            // Sort by z-depth
+            bodies.sort((a, b) => b.z - a.z);
+            
+            // Draw bodies
+            bodies.forEach(body => {
+                const projected = project(body.x, body.y, body.z + 500);
+                const size = Math.max(2, body.size * projected.scale * state.zoom * 2);
+                
+                if (projected.scale > 0) {
+                    // Pixel-style rendering
+                    const pixelSize = Math.max(1, Math.floor(size / 4));
+                    const pixelsAcross = Math.ceil(size / pixelSize);
+                    
+                    for (let px = 0; px < pixelsAcross; px++) {
+                        for (let py = 0; py < pixelsAcross; py++) {
+                            const offsetX = (px - pixelsAcross / 2) * pixelSize;
+                            const offsetY = (py - pixelsAcross / 2) * pixelSize;
+                            const dist = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
+                            
+                            if (dist <= size / 2) {
+                                const shade = 1 - (dist / (size / 2)) * 0.3;
+                                const r = parseInt(body.color.slice(1, 3), 16) * shade;
+                                const g = parseInt(body.color.slice(3, 5), 16) * shade;
+                                const b = parseInt(body.color.slice(5, 7), 16) * shade;
+                                
+                                ctx.fillStyle = `rgb(${Math.floor(r)}, ${Math.floor(g)}, ${Math.floor(b)})`;
+                                ctx.fillRect(
+                                    Math.floor(projected.x + offsetX),
+                                    Math.floor(projected.y + offsetY),
+                                    pixelSize + 1,
+                                    pixelSize + 1
+                                );
+                            }
+                        }
+                    }
+                    
+                    // Draw rings for Saturn
+                    if (body.rings) {
+                        ctx.strokeStyle = 'rgba(200, 180, 150, 0.6)';
+                        ctx.lineWidth = Math.max(1, 2 * projected.scale);
+                        ctx.beginPath();
+                        ctx.ellipse(projected.x, projected.y, size * 1.8, size * 0.6, 0, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    
+                    // Label
+                    if (state.zoom > 0.5) {
+                        ctx.fillStyle = '#00ff00';
+                        ctx.font = `${Math.max(8, Math.floor(10 * state.zoom))}px 'Press Start 2P'`;
+                        ctx.textAlign = 'center';
+                        ctx.fillText(body.name, projected.x, projected.y - size - 5);
+                    }
+                }
+            });
+            
+            // Draw vessels
+            state.vessels.filter(v => v.system === state.currentSystem).forEach(vessel => {
+                const body = system.bodies.find(b => b.name === vessel.location);
+                if (body) {
+                    let angle = time * body.speed + 0.5;
+                    const x = Math.cos(angle) * (body.distance + 30);
+                    const z = Math.sin(angle) * (body.distance + 30);
+                    
+                    let point = { x, y: 20, z };
+                    point = rotateX(point, state.rotation.x);
+                    point = rotateY(point, state.rotation.y);
+                    
+                    const projected = project(point.x, point.y, point.z + 500);
+                    
+                    if (projected.scale > 0) {
+                        const vesselSize = Math.max(3, 6 * projected.scale * state.zoom);
+                        const color = vessel.type === 'mining' ? '#00ffff' : '#ff00ff';
+                        
+                        // Pixel spaceship
+                        ctx.fillStyle = color;
+                        ctx.fillRect(Math.floor(projected.x - vesselSize/2), Math.floor(projected.y - vesselSize/2), vesselSize, vesselSize);
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(Math.floor(projected.x - vesselSize/4), Math.floor(projected.y - vesselSize/4), vesselSize/2, vesselSize/2);
+                    }
+                }
+            });
+            
+            // Draw mini-map
+            miniMapCtx.fillStyle = '#000000';
+            miniMapCtx.fillRect(0, 0, 200, 200);
+            
+            const miniScale = 0.3;
+            const centerX = 100;
+            const centerY = 100;
+            
+            system.bodies.forEach(body => {
+                if (body.distance === 0) {
+                    miniMapCtx.fillStyle = body.color;
+                    miniMapCtx.fillRect(centerX - 3, centerY - 3, 6, 6);
+                } else {
+                    const angle = time * body.speed;
+                    const x = centerX + Math.cos(angle) * body.distance * miniScale;
+                    const y = centerY + Math.sin(angle) * body.distance * miniScale;
+                    
+                    miniMapCtx.fillStyle = body.color;
+                    const size = Math.max(2, body.size * miniScale);
+                    miniMapCtx.fillRect(x - size/2, y - size/2, size, size);
+                }
+            });
+            
+            // Player indicator on mini-map
+            miniMapCtx.fillStyle = '#00ff00';
+            miniMapCtx.fillRect(centerX - 4, centerY - 4, 8, 8);
+            
+            time += 0.01;
+            requestAnimationFrame(render);
+        }
+
+        // Input handling
+        canvas.addEventListener('mousedown', e => {
+            state.isDragging = true;
+            state.lastMouse = { x: e.clientX, y: e.clientY };
+        });
+
+        canvas.addEventListener('mousemove', e => {
+            if (state.isDragging) {
+                const deltaX = e.clientX - state.lastMouse.x;
+                const deltaY = e.clientY - state.lastMouse.y;
+                
+                state.rotation.y += deltaX * 0.01;
+                state.rotation.x += deltaY * 0.01;
+                state.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, state.rotation.x));
+                
+                state.lastMouse = { x: e.clientX, y: e.clientY };
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            state.isDragging = false;
+        });
+
+        canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            const zoomSpeed = 0.1;
+            const newZoom = state.zoom - Math.sign(e.deltaY) * zoomSpeed;
+            state.zoom = Math.max(0.1, Math.min(10, newZoom)); // Super zoom from 0.1x to 10x
+            updateUI();
+        }, { passive: false });
+
+        // Touch support
+        canvas.addEventListener('touchstart', e => {
+            if (e.touches.length === 1) {
+                state.isDragging = true;
+                state.lastMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+        });
+
+        canvas.addEventListener('touchmove', e => {
+            if (state.isDragging && e.touches.length === 1) {
+                const deltaX = e.touches[0].clientX - state.lastMouse.x;
+                const deltaY = e.touches[0].clientY - state.lastMouse.y;
+                
+                state.rotation.y += deltaX * 0.01;
+                state.rotation.x += deltaY * 0.01;
+                state.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, state.rotation.x));
+                
+                state.lastMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+        });
+
+        canvas.addEventListener('touchend', () => {
+            state.isDragging = false;
+        });
+
+        // Initialize
+        updateUI();
+        render();
+        
+        // Initial notification
+        setTimeout(() => {
+            showNotification('🎮 Welcome to Cosmic Miner! Explore, mine, and build your fleet!', 'info');
+        }, 1000);
+    </script>
+</body>
+</html>
