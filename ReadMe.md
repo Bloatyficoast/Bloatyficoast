@@ -6,7 +6,9 @@
 💬 Ask me about cybersecurity, programming, and red-teaming
 ⚡ Fun fact: I love technology
 <br>
-🎓 Certifications
+
+🎓 Certifications:
+
 <p align="left"> <a href="assets/ccna-certificate.jpg"> <img src="assets/ccna-badge.png" width="180" alt="CCNA: Introduction to Networks — Verified Badge" /> </a> </p>
 
 Cisco Networking Academy — CCNA: Introduction to Networks ✅ Verified
